@@ -1,0 +1,17 @@
+{
+  "name": "What's Cookin",
+  "short_name": "What's Cookin",
+  "description": "Tell us what you have. We'll tell you what to make.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F8F1E4",
+  "theme_color": "#D2691E",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

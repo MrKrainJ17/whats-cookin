@@ -1,0 +1,544 @@
+@import "tailwindcss";
+
+@theme {
+  /* Display fonts — Fredoka stays as the global default for legacy screens */
+  --font-display: "Fredoka", "Quicksand", system-ui, sans-serif;
+  /* New home-page typography system */
+  --font-serif: "Fraunces", "Playfair Display", Georgia, serif;
+  --font-body: "Inter", system-ui, -apple-system, sans-serif;
+  --font-script: "Caveat", "Patrick Hand", cursive;
+
+  /* Existing palette — kept for non-home screens */
+  --color-cream: #fff8ec;
+  --color-tomato: #ff5a3c;
+  --color-tomato-deep: #e63916;
+  --color-paprika: #ff8a3d;
+  --color-basil: #2f9e44;
+  --color-mustard: #f5b700;
+  --color-charcoal: #2d2a26;
+
+  /* New home palette — confident handmade-zine */
+  --color-paper: #f8f1e4;
+  --color-paper-warm: #fcf6e8;
+  --color-ink: #2b2118;
+  --color-terracotta: #c4521a;
+  --color-mocha: #7a6e60;
+  --color-sage: #87a16f;
+  --color-mustard-soft: #d4a017;
+}
+
+html, body, #root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at 0% 0%, #ffe4cc 0%, transparent 45%),
+    radial-gradient(circle at 100% 100%, #ffd5c8 0%, transparent 45%),
+    var(--color-cream);
+  color: var(--color-charcoal);
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Cooking-mode + sheet animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideUp {
+  from { transform: translateY(24px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes stepInForward {
+  from { transform: translateX(20px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes stepInBack {
+  from { transform: translateX(-20px); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+.animate-fadeIn  { animation: fadeIn 0.18s ease-out both; }
+.animate-slideUp { animation: slideUp 0.22s ease-out both; }
+.step-anim-in-forward { animation: stepInForward 0.22s ease-out both; }
+.step-anim-in-back    { animation: stepInBack    0.22s ease-out both; }
+
+/* Full-viewport centered container. The dual height declaration is
+ * intentional: 100vh is the layout viewport (taller than the visible
+ * area on mobile Safari when the address bar is showing) and 100dvh
+ * is the dynamic viewport height, which tracks the actually-visible
+ * area. The dvh line wins on browsers that support it. */
+.viewport-center {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Cozy paper-grain background for cooking mode */
+.cooking-grain {
+  background-color: #fbf7f0;
+  background-image:
+    radial-gradient(circle at 12% 18%, rgba(255, 90, 60, 0.06), transparent 35%),
+    radial-gradient(circle at 88% 82%, rgba(245, 183, 0, 0.08), transparent 40%);
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+ * Handcrafted design language — shared across home, confirm, recipes,
+ * recipe detail, and loading screens. Static, confident, no animation
+ * cruft except for the whisk stir on loaders.
+ * ─────────────────────────────────────────────────────────────────────── */
+
+/* Solid warm cream + an SVG feTurbulence noise overlay for paper-fiber
+ * texture. mix-blend-mode: multiply tints the cream slightly darker where
+ * the noise lands, reading as warm paper grain rather than dirt. */
+.paper-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-color: var(--color-paper);
+}
+.paper-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 320'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.32 0 0 0 0 0.22 0 0 0 0 0.13 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.32;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+/* Neobrutalist button — cream tint, dark border, hard offset shadow.
+ * On hover/press the button moves into its shadow, creating the
+ * "stamped down" feel. */
+.brut-button {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  width: 100%;
+  text-align: left;
+  background: var(--color-paper-warm);
+  color: var(--color-ink);
+  border: 2px solid var(--color-ink);
+  border-radius: 10px;
+  box-shadow: 4px 4px 0 0 var(--color-ink);
+  padding: 1.25rem 1.5rem;
+  transition: transform 100ms ease-out, box-shadow 100ms ease-out;
+  cursor: pointer;
+}
+.brut-button:hover:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 0 var(--color-ink);
+}
+.brut-button:active:not(:disabled) {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 0 var(--color-ink);
+}
+.brut-button:focus-visible {
+  outline: none;
+  box-shadow: 4px 4px 0 0 var(--color-ink), 0 0 0 3px var(--color-terracotta);
+}
+.brut-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  /* Pressed-in / flat look: no hard shadow, slight inset translate so
+   * the button visually sits inside its outline rather than popping
+   * out. Matches the spec's "flat / pressed-in" disabled state. */
+  box-shadow: none;
+  transform: translate(2px, 2px);
+}
+.brut-button:disabled:hover,
+.brut-button:disabled:active {
+  box-shadow: none;
+  transform: translate(2px, 2px);
+}
+
+/* Content card — same brut treatment without the click affordance.
+ * Add `.brut-card-tappable` to opt into hover lift + press collapse. */
+.brut-card {
+  background: var(--color-paper-warm);
+  color: var(--color-ink);
+  border: 2px solid var(--color-ink);
+  border-radius: 12px;
+  box-shadow: 4px 4px 0 0 var(--color-ink);
+}
+.brut-card-tappable {
+  transition: transform 120ms ease-out, box-shadow 120ms ease-out;
+  cursor: pointer;
+}
+.brut-card-tappable:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 6px 6px 0 0 var(--color-ink);
+}
+.brut-card-tappable:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 0 var(--color-ink);
+}
+
+/* Text input — pen-and-paper feel. */
+.ink-input {
+  width: 100%;
+  background: var(--color-paper-warm);
+  color: var(--color-ink);
+  border: 2px solid var(--color-ink);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  transition: box-shadow 120ms ease-out, border-color 120ms ease-out;
+}
+.ink-input::placeholder {
+  color: var(--color-mocha);
+}
+.ink-input:focus {
+  outline: none;
+  border-color: var(--color-terracotta);
+  box-shadow: 3px 3px 0 0 var(--color-ink);
+}
+
+/* Square checkbox with a hand-drawn-ish check stroke. */
+.ink-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--color-ink);
+  background: var(--color-paper-warm);
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition: background-color 100ms ease-out;
+}
+.ink-checkbox:checked {
+  background-color: var(--color-paper-warm);
+}
+.ink-checkbox:checked::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 9 L 6 13 L 14 3' stroke='%23c4521a' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* Outline pill — used for stat badges (cook time, difficulty, servings).
+ * No fill, just a thin ink border, tight padding. */
+.ink-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1.5px solid var(--color-ink);
+  border-radius: 999px;
+  padding: 3px 12px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-ink);
+  background: transparent;
+}
+
+/* Tag chip used in ingredient lists. Small hard shadow. */
+.brut-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-paper-warm);
+  color: var(--color-ink);
+  border: 1.5px solid var(--color-ink);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  box-shadow: 2px 2px 0 0 var(--color-ink);
+}
+.brut-chip-uncertain {
+  border-color: var(--color-terracotta);
+  border-style: dashed;
+  box-shadow: 2px 2px 0 0 var(--color-terracotta);
+}
+
+/* Settings link — minimal type with scale-on-hover + a small gear rotation. */
+.settings-link {
+  display: inline-flex;
+  transform-origin: center center;
+  transition: transform 0.2s ease-out, color 0.2s ease-out;
+}
+.settings-link:hover {
+  transform: scale(1.1);
+}
+.settings-gear {
+  display: inline-block;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.settings-link:hover .settings-gear {
+  transform: rotate(90deg);
+}
+
+/* Whisk loader — gentle stir, used in place of the generic spinner. */
+@keyframes whisk-stir {
+  0%, 100% { transform: rotate(-12deg); }
+  50%      { transform: rotate(12deg); }
+}
+.whisk-stirring {
+  transform-origin: 50% 10%;
+  animation: whisk-stir 1.4s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Mic listening — terracotta ring radiates outward; combine with the
+ * underlying brut shadow so both render together. */
+@keyframes mic-pulse-ring {
+  0%, 100% {
+    box-shadow:
+      5px 5px 0 0 var(--color-ink),
+      0 0 0 0 rgba(210, 105, 30, 0.45);
+  }
+  50% {
+    box-shadow:
+      5px 5px 0 0 var(--color-ink),
+      0 0 0 14px rgba(210, 105, 30, 0);
+  }
+}
+.mic-listening {
+  border-color: var(--color-terracotta) !important;
+  animation: mic-pulse-ring 1.8s ease-out infinite;
+}
+
+/* Mic icon bob — pairs with the listening ring. The static rotate is
+ * preserved inside the keyframe so the icon stays tilted while bobbing. */
+@keyframes mic-icon-bob {
+  0%, 100% { transform: rotate(-4deg) translateY(0); }
+  50%      { transform: rotate(-4deg) translateY(-5px); }
+}
+.mic-icon-bob {
+  animation: mic-icon-bob 1.4s ease-in-out infinite;
+  display: inline-block;
+  will-change: transform;
+}
+
+/* Heart pop when a recipe is favorited. */
+@keyframes heart-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+.heart-pop { animation: heart-pop 320ms ease-out; }
+
+/* ───────────────────────────────────────────────────────────────────────────
+ * Onboarding survey — slide transitions, selection pop, chips, spice slider.
+ * ─────────────────────────────────────────────────────────────────────── */
+
+@keyframes survey-slide-in {
+  from { transform: translateX(24px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes survey-slide-in-back {
+  from { transform: translateX(-24px); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+.survey-slide-forward { animation: survey-slide-in 200ms ease-out both; }
+.survey-slide-back    { animation: survey-slide-in-back 200ms ease-out both; }
+
+@keyframes selection-pop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+.selection-pop { animation: selection-pop 150ms ease-out; }
+
+/* Selectable answer card — neobrutalist tappable rectangle. Pops on
+ * selection and thickens its border. */
+.select-card {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  width: 100%;
+  text-align: left;
+  background: var(--color-paper-warm);
+  color: var(--color-ink);
+  border: 2px solid var(--color-ink);
+  border-radius: 10px;
+  box-shadow: 3px 3px 0 0 var(--color-ink);
+  padding: 0.9rem 1rem;
+  cursor: pointer;
+  transition: transform 120ms ease-out, box-shadow 120ms ease-out,
+              border-width 120ms ease-out;
+}
+.select-card:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 0 var(--color-ink);
+}
+.select-card:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 0 var(--color-ink);
+}
+.select-card.is-selected {
+  border-color: var(--color-terracotta);
+  background: #fef1e2;
+  box-shadow: 4px 4px 0 0 var(--color-terracotta);
+  transform: translate(-1px, -1px);
+}
+
+/* Multi-select chip — smaller than the cards, hard shadow. Uses the
+ * same Fraunces serif as titles (weight 600) so chip labels feel like
+ * designed elements rather than plain form pills. */
+.select-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: var(--color-paper-warm);
+  color: var(--color-ink);
+  border: 1.5px solid var(--color-ink);
+  border-radius: 999px;
+  padding: 0.55rem 1rem;
+  font-family: var(--font-serif);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  box-shadow: 2px 2px 0 0 var(--color-ink);
+  cursor: pointer;
+  transition: transform 100ms ease-out, box-shadow 100ms ease-out;
+}
+.select-chip:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 0 var(--color-ink);
+}
+.select-chip.is-selected {
+  background: var(--color-terracotta);
+  color: #fcf6e8;
+  border-color: var(--color-ink);
+  box-shadow: 2px 2px 0 0 var(--color-ink);
+}
+
+/* Progress dots */
+.progress-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  border: 1.5px solid var(--color-ink);
+  background: transparent;
+  transition: background-color 200ms ease-out, transform 200ms ease-out;
+}
+.progress-dot.is-active {
+  background: var(--color-terracotta);
+  border-color: var(--color-terracotta);
+  transform: scale(1.25);
+}
+.progress-dot.is-done {
+  background: var(--color-ink);
+}
+
+/* Spice slider track + thumb (custom, ink-bordered) */
+.spice-track {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-paper-warm);
+  border: 2px solid var(--color-ink);
+}
+.spice-fill {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  left: -2px;
+  border-radius: 999px;
+  background: var(--color-terracotta);
+  border: 2px solid var(--color-ink);
+  transition: width 200ms ease-out;
+}
+.spice-stop {
+  position: absolute;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 2px solid var(--color-ink);
+  background: var(--color-paper-warm);
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  transition: transform 150ms ease-out;
+}
+.spice-stop.is-passed {
+  background: var(--color-terracotta);
+}
+.spice-stop.is-active {
+  width: 22px;
+  height: 22px;
+  background: var(--color-terracotta);
+  box-shadow: 2px 2px 0 0 var(--color-ink);
+}
+
+/* Confetti burst on the final card */
+@keyframes confetti-fall {
+  0%   { transform: translate3d(0, -20px, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate3d(var(--cx, 0), 140vh, 0) rotate(720deg); opacity: 0; }
+}
+.confetti-piece {
+  position: absolute;
+  top: 0;
+  width: 10px;
+  height: 14px;
+  animation: confetti-fall 2.2s ease-in forwards;
+  will-change: transform, opacity;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+ * Grocery list — toast, item fade-in, check draw, badge pulse.
+ * ─────────────────────────────────────────────────────────────────────── */
+
+@keyframes toast-in {
+  from { transform: translate(-50%, 16px); opacity: 0; }
+  to   { transform: translate(-50%, 0);    opacity: 1; }
+}
+@keyframes toast-out {
+  to   { transform: translate(-50%, -8px); opacity: 0; }
+}
+.grocery-toast {
+  animation: toast-in 220ms ease-out both, toast-out 220ms ease-in 2.4s both;
+  will-change: transform, opacity;
+}
+
+@keyframes item-fade-in {
+  from { transform: translateY(6px); opacity: 0; }
+  to   { transform: translateY(0);   opacity: 1; }
+}
+.grocery-item-enter { animation: item-fade-in 200ms ease-out both; }
+
+@keyframes badge-pulse {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+.badge-pulse { animation: badge-pulse 350ms ease-out; }
+
+/* Reduced-motion guard — kill the small transitions, freeze the whisk. */
+@media (prefers-reduced-motion: reduce) {
+  .brut-button,
+  .brut-card-tappable,
+  .ink-input,
+  .ink-checkbox,
+  .settings-link,
+  .settings-gear {
+    transition: none;
+  }
+  .whisk-stirring { animation: none !important; }
+  .heart-pop { animation: none !important; }
+  .mic-listening { animation: none !important; }
+  .mic-icon-bob { animation: none !important; }
+  .survey-slide-forward,
+  .survey-slide-back,
+  .selection-pop,
+  .confetti-piece,
+  .grocery-toast,
+  .grocery-item-enter,
+  .badge-pulse { animation: none !important; }
+}
