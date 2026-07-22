@@ -42,6 +42,81 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* ───────────────────────────────────────────────────────────────────────────
+ * DARK MODE
+ * All UI colors flow through the --color-* theme variables (via Tailwind
+ * utilities like bg-cream/text-ink/border-ink and inline var(--color-ink)
+ * shadows). Redefining those variables under [data-theme="dark"] repaints the
+ * ENTIRE app instantly — no per-page edits. --color-ink flips to a warm
+ * off-white so text, borders and the neobrutalist offset-shadows render as
+ * light "paper-cutout" lines on the dark surfaces, staying on-brand.
+ * ─────────────────────────────────────────────────────────────────────── */
+:root {
+  color-scheme: light;
+  --streak-brown: #8a5a2b; /* warm brown for the home streak badge */
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+  --streak-brown: #d9b48a; /* lighter warm tan so it reads on dark */
+  --color-cream: #1a1410;        /* page background — dark warm brown */
+  --color-paper: #201812;        /* paper-texture base */
+  --color-paper-warm: #2a2018;   /* cards / buttons */
+  --color-ink: #f5edd9;          /* primary text + borders + hard shadows */
+  --color-charcoal: #f5edd9;     /* legacy body text */
+  --color-mocha: #8b7d6b;        /* muted text */
+  --color-terracotta: #d2691e;   /* accent — stays warm terracotta */
+  --color-sage: #9db98a;
+  --color-mustard-soft: #e0b84a;
+}
+
+/* Dark page background — the light radial highlights would glow on dark. */
+[data-theme="dark"] body {
+  background:
+    radial-gradient(circle at 0% 0%, #2a1c12 0%, transparent 45%),
+    radial-gradient(circle at 100% 100%, #241a14 0%, transparent 45%),
+    var(--color-cream);
+  color: var(--color-charcoal);
+}
+
+/* Modal / sheet scrims use bg-ink at low alpha. With --color-ink now light
+ * those would wash out, so force them dark to keep the dimming effect. */
+[data-theme="dark"] .bg-ink\/40,
+[data-theme="dark"] .bg-ink\/50,
+[data-theme="dark"] .bg-ink\/60 {
+  background-color: rgba(8, 6, 4, 0.66);
+}
+
+/* Legacy screens (Settings, Profile, auth, onboarding) use literal white
+ * cards. Map them onto the dark surface so they don't blaze white. */
+[data-theme="dark"] .bg-white {
+  background-color: var(--color-paper-warm);
+}
+
+/* Cooking streak — the hourglass "about to expire" warning gets a slow,
+ * non-aggressive pulse once it's late (after 9pm). */
+@keyframes streak-hourglass-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.25; }
+}
+.streak-hourglass-urgent {
+  display: inline-block;
+  animation: streak-hourglass-pulse 1.6s ease-in-out infinite;
+}
+
+/* Milestone toast — rises from the bottom, holds, then fades out. */
+@keyframes streak-toast-in {
+  from { opacity: 0; transform: translate(-50%, 12px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+.streak-toast-enter {
+  animation: streak-toast-in 260ms ease-out both;
+}
+.streak-toast-leave {
+  opacity: 0;
+  transform: translate(-50%, 12px);
+  transition: opacity 400ms ease-in, transform 400ms ease-in;
+}
+
 /* Cooking-mode + sheet animations */
 @keyframes fadeIn {
   from { opacity: 0; }

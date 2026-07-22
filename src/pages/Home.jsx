@@ -17,6 +17,8 @@ import {
   getItemCount as getGroceryItemCount,
   subscribe as subscribeGrocery,
 } from "../lib/groceryList.js";
+import { getDailyTip } from "../lib/dailyTip.js";
+import { getStreakStatus } from "../lib/streak.js";
 import { useSession } from "../lib/sessionContext.js";
 
 const LIGHT_TOOLTIP_KEY = "whatscookin:lightPersonalizationShown";
@@ -80,43 +82,52 @@ export default function Home() {
     <>
       <PaperBackdrop />
 
-      <PageShell compact>
-        <div className="relative z-10 flex flex-col flex-1">
+      <PageShell compact fitToViewport maxWidthClass="max-w-[500px]">
+        {/* Single non-scrolling column: the four sections are spread evenly
+            from the top of the viewport to the bottom with space-between. */}
+        <div className="relative z-10 flex flex-col flex-1 justify-between">
           <AuthCorner />
-          <Title />
 
-          <p className="mt-8 text-center text-sm sm:text-base text-mocha font-body px-4 leading-snug">
-            Tell us what you have. We'll tell you what to make.
-          </p>
+          {/* Top section: logo + title + subtitle + daily tip */}
+          <div className="flex flex-col">
+            <Title />
 
-          <PenStroke className="mt-4" width={112} />
+            <p className="mt-3 text-center text-sm sm:text-base text-mocha font-body px-4 leading-snug">
+              Tell us what you have. We'll tell you what to make.
+            </p>
 
-          {tooltipVisible && (
-            <LightTooltip
-              navigate={navigate}
-              onClose={() => setTooltipVisible(false)}
-            />
-          )}
+            <DailyTip />
 
-          {nudgeVisible && (
-            <SurveyNudge
-              onAccept={() =>
-                dismissNudgeAnd(() => navigate("/onboarding"))
-              }
-              onDismiss={() => dismissNudgeAnd()}
-            />
-          )}
+            <PenStroke className="mt-2" width={112} />
 
-          {profile.personalizationLevel !== "none" && (
-            <div className="mt-2">
-              <ContextualSuggestion
-                profile={profile}
-                onTap={onSuggestionTap}
+            {tooltipVisible && (
+              <LightTooltip
+                navigate={navigate}
+                onClose={() => setTooltipVisible(false)}
               />
-            </div>
-          )}
+            )}
 
-          <div className="mt-3 flex-1 flex flex-col gap-2 justify-center">
+            {nudgeVisible && (
+              <SurveyNudge
+                onAccept={() =>
+                  dismissNudgeAnd(() => navigate("/onboarding"))
+                }
+                onDismiss={() => dismissNudgeAnd()}
+              />
+            )}
+
+            {profile.personalizationLevel !== "none" && (
+              <div className="mt-2">
+                <ContextualSuggestion
+                  profile={profile}
+                  onTap={onSuggestionTap}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Middle section: three input buttons */}
+          <div className="flex flex-col gap-1.5">
             <BrutButton
               emoji="📸"
               tilt="-4deg"
@@ -131,17 +142,11 @@ export default function Home() {
               sub="Type what you've got"
               onClick={() => navigate("/type")}
             />
-            <BrutButton
-              emoji="🎤"
-              tilt="-2deg"
-              label="Speak Ingredients"
-              sub="Tap and talk"
-              onClick={() => navigate("/speak")}
-            />
             <GroceryListButton onClick={() => navigate("/grocery")} />
           </div>
 
-          <footer className="mt-3 flex flex-col items-center gap-1.5">
+          {/* Bottom section: profile + settings footer */}
+          <footer className="flex flex-col items-center gap-1.5">
             <PenStroke width={72} />
             <div className="flex items-center gap-5">
               <button
@@ -181,6 +186,7 @@ function Title() {
   return (
     <header className="mt-1 flex flex-col items-center">
       <LogoVariant2 size={40} className="mb-1.5 block" />
+      <StreakBadge />
       <h1 className="font-serif font-extrabold leading-[0.92] tracking-[-0.02em] text-ink select-none flex flex-col items-center text-center">
         <span className="text-[44px] sm:text-[48px] leading-none">
           What's
@@ -191,6 +197,36 @@ function Title() {
         </span>
       </h1>
     </header>
+  );
+}
+
+/* ── Cooking streak badge ───────────────────────────────────────────────── */
+
+// Small handwritten streak pill shown between the pot logo and the title.
+// Hidden unless the streak is 2+. Adds an hourglass when the streak is at risk
+// late in the day, or a ✅ once the user has already cooked today.
+function StreakBadge() {
+  const status = useMemo(() => getStreakStatus(), []);
+  if (status.streak < 2) return null;
+
+  return (
+    <div className="mb-1 flex items-center justify-center">
+      <span
+        className="font-script text-lg leading-none"
+        style={{ color: "var(--streak-brown)" }}
+      >
+        {status.showHourglass && (
+          <span
+            aria-hidden="true"
+            className={`mr-1 ${status.urgent ? "streak-hourglass-urgent" : ""}`}
+          >
+            ⏳
+          </span>
+        )}
+        🔥 {status.streak} day streak
+        {status.cookedToday && <span aria-hidden="true"> ✅</span>}
+      </span>
+    </div>
   );
 }
 
@@ -228,7 +264,7 @@ function BrutButton({ emoji, tilt, label, sub, onClick, ariaLabel }) {
       onClick={onClick}
       aria-label={ariaLabel}
       className="brut-button"
-      style={{ padding: "0.6rem 1.1rem", gap: "0.85rem" }}
+      style={{ padding: "0.45rem 1.1rem", gap: "0.85rem" }}
     >
       <span
         className="text-[36px] shrink-0 inline-block leading-none"
@@ -246,6 +282,26 @@ function BrutButton({ emoji, tilt, label, sub, onClick, ariaLabel }) {
         </span>
       </span>
     </button>
+  );
+}
+
+/* ── Daily rotating cooking tip ─────────────────────────────────────────── */
+
+// A small handwritten note that sits just under the tagline. The tip is
+// keyed to the calendar day (see getDailyTip) so it stays put all day and
+// everyone sees the same one — computed once per mount.
+function DailyTip() {
+  const tip = useMemo(() => getDailyTip(), []);
+  return (
+    <p
+      className="mt-2 px-6 text-center font-script text-xs sm:text-sm leading-snug -rotate-1"
+      style={{ color: "#7A6E60" }}
+    >
+      <span aria-hidden="true" className="mr-1">
+        {tip.emoji}
+      </span>
+      {tip.text}
+    </p>
   );
 }
 

@@ -6,12 +6,20 @@ import { drawCozy } from "./shareCardTemplates/cozy.js";
 import { drawBold } from "./shareCardTemplates/bold.js";
 import { drawMinimal } from "./shareCardTemplates/minimal.js";
 import { drawPlayful } from "./shareCardTemplates/playful.js";
+import { drawDiner } from "./shareCardTemplates/diner.js";
+import { drawSunset } from "./shareCardTemplates/sunset.js";
+import { drawChefs } from "./shareCardTemplates/chefs.js";
+import { drawNeon } from "./shareCardTemplates/neon.js";
 
 export const TEMPLATES = {
-  cozy: { label: "Warm & Cozy", draw: drawCozy },
-  bold: { label: "Bold & Modern", draw: drawBold },
-  minimal: { label: "Clean & Minimal", draw: drawMinimal },
-  playful: { label: "Cute & Playful", draw: drawPlayful },
+  cozy: { label: "Warm & Rustic", short: "Rustic", draw: drawCozy },
+  bold: { label: "Dark & Moody", short: "Moody", draw: drawBold },
+  minimal: { label: "Fresh & Minimal", short: "Fresh", draw: drawMinimal },
+  diner: { label: "Retro Diner", short: "Diner", draw: drawDiner },
+  sunset: { label: "Gradient Sunset", short: "Sunset", draw: drawSunset },
+  chefs: { label: "Chef's Table", short: "Chef's", draw: drawChefs },
+  neon: { label: "Neon Night", short: "Neon", draw: drawNeon },
+  playful: { label: "Polaroid", short: "Polaroid", draw: drawPlayful },
 };
 
 export const TEMPLATE_IDS = Object.keys(TEMPLATES);
@@ -56,19 +64,49 @@ export function ensureFontsLoaded() {
 }
 
 // Main entry. Returns a PNG Blob.
+//
+// Each template draws to a generously-tall scratch canvas and returns
+// `contentBottom` — the Y coordinate of the last pixel it drew (including
+// the watermark). We then crop the result to that height. That's how the
+// card "grows taller" to fit content: ingredient chips, rating, note,
+// and watermark always have room and can never overlap each other.
+const SCRATCH_HEIGHT_HEADROOM = 1200;
+const FINAL_PADDING = 40; // breathing room below the watermark
+
 export async function generateShareCard(recipe, template = "cozy", userOptions = {}) {
   await ensureFontsLoaded();
   const def = TEMPLATES[template] || TEMPLATES.cozy;
-  const canvas = document.createElement("canvas");
-  canvas.width = CARD_W;
-  canvas.height = CARD_H;
-  const ctx = canvas.getContext("2d");
+
+  // Draw into a tall scratch canvas. Background fills the full scratch
+  // area — anything below the actual content end gets cropped off later
+  // so the user never sees the extra blank space.
+  const scratch = document.createElement("canvas");
+  scratch.width = CARD_W;
+  scratch.height = CARD_H + SCRATCH_HEIGHT_HEADROOM;
+  const ctx = scratch.getContext("2d");
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
   ctx.textBaseline = "top";
   ctx.textAlign = "start";
-  def.draw(ctx, recipe, userOptions);
-  return canvasToBlob(canvas);
+
+  const contentBottom = def.draw(ctx, recipe, userOptions) ?? CARD_H;
+  const finalH = Math.max(CARD_H, Math.ceil(contentBottom + FINAL_PADDING));
+
+  // Crop by copying the top `finalH` pixels of the scratch canvas into
+  // a correctly-sized final canvas. drawImage handles the source-size
+  // sub-rect crop cleanly.
+  const final = document.createElement("canvas");
+  final.width = CARD_W;
+  final.height = finalH;
+  const fctx = final.getContext("2d");
+  fctx.imageSmoothingEnabled = true;
+  fctx.imageSmoothingQuality = "high";
+  fctx.drawImage(
+    scratch,
+    0, 0, CARD_W, finalH,
+    0, 0, CARD_W, finalH,
+  );
+  return canvasToBlob(final);
 }
 
 function canvasToBlob(canvas) {

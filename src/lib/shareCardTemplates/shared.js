@@ -19,24 +19,54 @@ export { emojiForIngredient };
 // the last line with an ellipsis when more text would overflow.
 export function wrapText(ctx, text, maxWidth, maxLines = 2) {
   if (!text) return [];
-  const words = String(text).split(/\s+/);
+  const words = String(text).split(/\s+/).filter(Boolean);
   const lines = [];
   let current = "";
   for (const word of words) {
+    if (lines.length >= maxLines) break;
+
     const test = current ? `${current} ${word}` : word;
     if (ctx.measureText(test).width <= maxWidth) {
       current = test;
-    } else {
-      if (current) lines.push(current);
-      current = word;
-      if (lines.length === maxLines) break;
+      continue;
     }
+
+    // The word won't fit on the current line — flush what we have.
+    if (current) {
+      lines.push(current);
+      current = "";
+      if (lines.length >= maxLines) break;
+    }
+
+    // A word that fits on its own line simply starts the next one.
+    if (ctx.measureText(word).width <= maxWidth) {
+      current = word;
+      continue;
+    }
+
+    // The word is wider than an entire line. Break it character by
+    // character (overflow-wrap: break-word) so a long unbroken string can
+    // never run off the sides of the card.
+    let chunk = "";
+    for (const ch of word) {
+      if (ctx.measureText(chunk + ch).width <= maxWidth) {
+        chunk += ch;
+        continue;
+      }
+      if (lines.length >= maxLines) {
+        chunk = "";
+        break;
+      }
+      if (chunk) lines.push(chunk);
+      chunk = ch;
+    }
+    current = chunk;
   }
-  if (lines.length < maxLines && current) lines.push(current);
-  // If we still have leftover words, truncate the last line with an ellipsis.
+  if (current && lines.length < maxLines) lines.push(current);
+  // If we still have leftover text, truncate the last line with an ellipsis.
   if (lines.length === maxLines) {
     const consumed = lines.join(" ").length;
-    if (consumed < text.length) {
+    if (consumed < String(text).length) {
       let last = lines[lines.length - 1];
       while (last.length > 1 && ctx.measureText(last + "…").width > maxWidth) {
         last = last.slice(0, -1);
@@ -70,7 +100,7 @@ export function drawCenteredText(ctx, text, cx, y) {
 
 // Pill chip with label + optional leading emoji. Returns drawn width so the
 // caller can lay multiple pills out in a row.
-export function drawPill(ctx, x, y, label, { font, padX = 28, padY = 16, bg, fg, radius = 100, leading = null, leadingFont = null }) {
+export function drawPill(ctx, x, y, label, { font, padX = 28, padY = 16, bg, fg, radius = 100, leading = null, leadingFont = null, border = null, shadow = null }) {
   ctx.font = font;
   const leadingW = leading ? measureLeadingWidth(ctx, leading, leadingFont) : 0;
   const labelW = ctx.measureText(label).width;
@@ -80,9 +110,23 @@ export function drawPill(ctx, x, y, label, { font, padX = 28, padY = 16, bg, fg,
   const fontHeight = pxFromFont(font);
   const totalH = fontHeight + padY * 2;
 
-  ctx.fillStyle = bg;
-  roundRectPath(ctx, x, y, totalW, totalH, radius);
-  ctx.fill();
+  if (shadow) {
+    ctx.save();
+    ctx.shadowColor = shadow.color || "rgba(0,0,0,0.2)";
+    ctx.shadowBlur = shadow.blur || 16;
+  }
+  if (bg) {
+    ctx.fillStyle = bg;
+    roundRectPath(ctx, x, y, totalW, totalH, radius);
+    ctx.fill();
+  }
+  if (shadow) ctx.restore();
+  if (border) {
+    ctx.strokeStyle = border.color;
+    ctx.lineWidth = border.width ?? 2;
+    roundRectPath(ctx, x, y, totalW, totalH, radius);
+    ctx.stroke();
+  }
 
   ctx.fillStyle = fg;
   const textBaselineY = y + padY;
@@ -174,6 +218,8 @@ export function drawPillRow(ctx, pills, cx, y, maxWidth, opts) {
         radius: opts.radius,
         leading: pill.leading,
         leadingFont: opts.leadingFont,
+        border: opts.border,
+        shadow: opts.shadow,
       });
       cursor += drawn.width + gap;
     }
@@ -183,19 +229,38 @@ export function drawPillRow(ctx, pills, cx, y, maxWidth, opts) {
 }
 
 // Common content extracted from a recipe + user options used by every template.
+export const MAX_INGREDIENT_CHIPS = 6;
+
+// Helper: build the chip-row payload including a "+N more" tail chip
+// when the recipe has more ingredients than fit. Templates choose their
+// own visual styling via opts on drawPillRow.
+export function buildChipPills(c, capitalizeFn = (s) => s) {
+  const pills = c.ingredients.map((i) => ({
+    label: capitalizeFn(i.name),
+    leading: i.emoji,
+  }));
+  if (c.ingredientOverflow > 0) {
+    pills.push({ label: `+${c.ingredientOverflow} more`, leading: "" });
+  }
+  return pills;
+}
+
 export function extractCardContent(recipe, userOptions = {}) {
-  const ings = Array.isArray(recipe.ingredients)
-    ? recipe.ingredients
-        .slice(0, 5)
-        .map((i) => ({
-          name: i.name,
-          emoji: emojiForIngredient(i.name),
-        }))
-    : [];
+  const allIngs = Array.isArray(recipe.ingredients) ? recipe.ingredients : [];
+  const ings = allIngs.slice(0, MAX_INGREDIENT_CHIPS).map((i) => ({
+    name: i.name,
+    emoji: emojiForIngredient(i.name),
+  }));
+  const overflow = Math.max(0, allIngs.length - MAX_INGREDIENT_CHIPS);
 
   const ratingMap = {
     loved: { emoji: "⭐", label: "My new favorite!" },
-    fine: { emoji: "🤷", label: "It was fine" },
+    really_good: { emoji: "😋", label: "Really good" },
+    solid: { emoji: "👍", label: "Pretty solid" },
+    okay: { emoji: "🤷", label: "It was okay" },
+    again: { emoji: "🔁", label: "Would make again" },
+    // Legacy ids kept so previously-saved drafts still render.
+    fine: { emoji: "🤷", label: "It was okay" },
     never_again: { emoji: "👎", label: "Never again" },
   };
 
@@ -213,6 +278,7 @@ export function extractCardContent(recipe, userOptions = {}) {
     difficulty: recipe.difficulty || "easy",
     servings: recipe.servings,
     ingredients: ings,
+    ingredientOverflow: overflow,
     rating: userOptions.rating ? ratingMap[userOptions.rating] : null,
     note: typeof userOptions.note === "string" ? userOptions.note.trim().slice(0, 80) : "",
     tags,

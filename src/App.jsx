@@ -7,7 +7,6 @@ import Recipes from "./pages/Recipes.jsx";
 import RecipeDetail from "./pages/RecipeDetail.jsx";
 import Settings from "./pages/Settings.jsx";
 import TypeIngredients from "./pages/TypeIngredients.jsx";
-import SpeakIngredients from "./pages/SpeakIngredients.jsx";
 import LogoPreview from "./pages/LogoPreview.jsx";
 import Onboarding from "./pages/Onboarding.jsx";
 import GroceryList from "./pages/GroceryList.jsx";
@@ -30,6 +29,7 @@ import { wasNameSkipped } from "./lib/namePrompt.js";
 import { useSession } from "./lib/sessionContext.js";
 import { SessionProvider } from "./lib/sessionContext.jsx";
 import { hasCompletedOnboarding, bumpAppOpenCount } from "./lib/preferences.js";
+import StreakMilestoneToast from "./components/StreakMilestoneToast.jsx";
 
 export default function App() {
   // useLocation re-renders this component on every navigation, so
@@ -55,7 +55,6 @@ export default function App() {
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/photo" element={<Photo />} />
           <Route path="/type" element={<TypeIngredients />} />
-          <Route path="/speak" element={<SpeakIngredients />} />
           <Route path="/confirm" element={<Confirm />} />
           <Route path="/recipes" element={<Recipes />} />
           <Route path="/recipe/:id" element={<RecipeDetail />} />
@@ -80,6 +79,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </NameGate>
+      <StreakMilestoneToast />
     </SessionProvider>
   );
 }

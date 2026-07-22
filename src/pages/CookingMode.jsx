@@ -26,6 +26,8 @@ import {
   clearCookingSession,
   incrementCookedCount,
 } from "../lib/cookingState.js";
+import { addToCookHistory } from "../lib/cookHistory.js";
+import { recordCookToday } from "../lib/streak.js";
 import {
   createVoiceRecognizer,
   isVoiceSupported,
@@ -362,6 +364,10 @@ export default function CookingMode({
         cancelSpeech();
         dispatchTimers({ type: "acknowledgeAll" });
         exitOutcomeRef.current = "completed";
+        console.log(
+          "[CookingMode] cooking_completed — full recipe at completion:",
+          recipe,
+        );
         logEvent("cooking_completed", {
           recipeId: recipe.id,
           recipeData: recipeEventData(recipe),
@@ -654,7 +660,15 @@ export default function CookingMode({
     // capture the user's tags + note + (possibly updated) rating in one
     // recipe_cooked metadata blob.
     const finalize = (state) => {
+      console.log(
+        "[CookingMode] finalize — saving cooked recipe to history. full recipe:",
+        recipe,
+      );
       incrementCookedCount(recipe.id);
+      addToCookHistory(recipe);
+      // Count today toward the cooking streak (once per day; may fire a
+      // milestone toast handled globally in App).
+      recordCookToday();
       const metadata = {};
       if (state.rating) metadata.rating = state.rating;
       if (state.note) metadata.note = state.note;

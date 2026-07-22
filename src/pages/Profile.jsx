@@ -5,6 +5,7 @@ import PaperBackdrop from "../components/handDrawn/PaperBackdrop.jsx";
 import PenStroke from "../components/handDrawn/PenStroke.jsx";
 import LearningsPanel from "../components/settings/LearningsPanel.jsx";
 import PreferenceCard from "../components/profile/PreferenceCard.jsx";
+import ThemeToggle from "../components/ThemeToggle.jsx";
 import {
   DEFAULT_PREFERENCES,
   DIET_LABELS,
@@ -186,6 +187,14 @@ export default function Profile() {
                 </div>
               </div>
             )}
+
+            {/* Appearance — theme toggle (shown for guests and members) */}
+            <div className="mt-6 flex items-center justify-between gap-3">
+              <p className="font-body text-[11px] uppercase tracking-[0.18em] text-mocha">
+                Appearance
+              </p>
+              <ThemeToggle />
+            </div>
           </section>
 
           {/* Middle — Your Taste menu */}

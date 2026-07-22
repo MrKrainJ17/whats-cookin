@@ -16,27 +16,29 @@ import {
   roundRectPath,
   formatTagsForCard,
   drawLogoWatermark,
+  buildChipPills,
 } from "./shared.js";
 
 const BG = "#ffffff";
+const SAGE = "#7B9E7B";
 const TEXT_PRIMARY = "#0a0a0a";
 const TEXT_MUTED = "#737373";
 const LINE = "#e5e5e5";
-const CHIP_CORNER_RADIUS = 12; // Sharp-ish corners; minimal aesthetic
+const CHIP_CORNER_RADIUS = 100; // soft rounded pills
 
 export function drawMinimal(ctx, recipe, userOptions = {}) {
   const c = extractCardContent(recipe, userOptions);
 
   // Background
   ctx.fillStyle = BG;
-  ctx.fillRect(0, 0, CARD_W, CARD_H);
+  ctx.fillRect(0, 0, CARD_W, ctx.canvas.height);
 
-  // Top hairline + eyebrow
+  // Top hairline + eyebrow with sage leaf accent
   ctx.fillStyle = LINE;
   ctx.fillRect(CONTENT_LEFT, SAFE_TOP + 70, CONTENT_W, 1);
-  ctx.fillStyle = TEXT_MUTED;
+  ctx.fillStyle = SAGE;
   ctx.font = '500 30px "Inter", system-ui, sans-serif';
-  ctx.fillText("I just cooked", CONTENT_LEFT, SAFE_TOP + 25);
+  ctx.fillText("🌿  I just cooked", CONTENT_LEFT, SAFE_TOP + 25);
   // Right-aligned date stamp
   const dateLabel = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
   const dw = ctx.measureText(dateLabel).width;
@@ -94,41 +96,40 @@ export function drawMinimal(ctx, recipe, userOptions = {}) {
   drawCenteredText(ctx, stats.join("  ·  "), CARD_W / 2, cursorY);
   cursorY += 60;
 
-  // Ingredient chips — outlined, no fill, small radius, properly clamped
+  // Ingredient chips — outlined, capture height so rating + note flow below.
   if (c.ingredients.length > 0) {
-    const ingPills = c.ingredients.map((i) => ({
-      label: capitalize(i.name),
-      leading: i.emoji,
-    }));
-    drawPillRowOutlined(ctx, ingPills, CARD_W / 2, cursorY, CONTENT_W);
+    const ingPills = buildChipPills(c, capitalize);
+    cursorY += drawPillRowOutlined(ctx, ingPills, CARD_W / 2, cursorY, CONTENT_W);
   }
 
-  // Rating + note + watermark
-  const watermarkY = CARD_H - SAFE_BOTTOM - 70;
-  let extrasBottom = watermarkY - 30;
-  if (c.note) {
-    ctx.fillStyle = TEXT_MUTED;
-    ctx.font = 'italic 400 32px "Inter", system-ui, sans-serif';
-    const noteLines = wrapText(ctx, `"${c.note}"`, CONTENT_W - 80, 2);
-    let ny = extrasBottom - (noteLines.length - 1) * 44 - 20;
-    for (const line of noteLines) {
-      drawCenteredText(ctx, line, CARD_W / 2, ny);
-      ny += 44;
-    }
-    extrasBottom -= noteLines.length * 44 + 30;
-  }
+  // Rating in sage green.
   if (c.rating) {
-    ctx.fillStyle = TEXT_PRIMARY;
+    cursorY += 32;
+    ctx.fillStyle = SAGE;
     ctx.font = '600 38px "Inter", system-ui, sans-serif';
     drawCenteredText(
       ctx,
       `${c.rating.emoji}  ${c.rating.label}`,
       CARD_W / 2,
-      extrasBottom - 50,
+      cursorY,
     );
+    cursorY += 50;
+  }
+  if (c.note) {
+    cursorY += 20;
+    ctx.fillStyle = TEXT_MUTED;
+    ctx.font = 'italic 400 32px "Inter", system-ui, sans-serif';
+    const noteLines = wrapText(ctx, `"${c.note}"`, CONTENT_W - 80, 2);
+    for (const line of noteLines) {
+      drawCenteredText(ctx, line, CARD_W / 2, cursorY);
+      cursorY += 44;
+    }
   }
 
-  // Watermark — bottom hairline + logo + text
+  // Watermark — bottom hairline + logo + text. Dynamic Y so it never
+  // overlaps the note even with multi-row chips above.
+  const defaultWatermarkY = CARD_H - SAFE_BOTTOM - 70;
+  const watermarkY = Math.max(defaultWatermarkY, cursorY + 60);
   ctx.fillStyle = LINE;
   ctx.fillRect(CONTENT_LEFT, watermarkY - 20, CONTENT_W, 1);
   ctx.fillStyle = TEXT_MUTED;
@@ -137,6 +138,7 @@ export function drawMinimal(ctx, recipe, userOptions = {}) {
     logoSize: 52,
     gap: 16,
   });
+  return watermarkY + 80;
 }
 
 function capitalize(s) {
@@ -176,20 +178,22 @@ function drawPillRowOutlined(ctx, pills, cx, y, maxWidth) {
   for (const r of rows) {
     let cursor = cx - r.totalW / 2;
     for (const { pill, width } of r.items) {
-      // Outline — uses the shared roundRectPath helper, which clamps radius
-      // to min(r, w/2, h/2) so it can never overshoot the chip box. Sharp
-      // 12px corners fit the minimal aesthetic.
-      ctx.strokeStyle = TEXT_PRIMARY;
+      // Outline in sage green — clamped radius via roundRectPath.
+      ctx.strokeStyle = SAGE;
       ctx.lineWidth = 1.5;
       roundRectPath(ctx, cursor, cy, width, lineH, CHIP_CORNER_RADIUS);
       ctx.stroke();
       // Text content
       ctx.fillStyle = TEXT_PRIMARY;
-      ctx.fillText(pill.leading, cursor + padX, cy + padY);
-      const leadW = ctx.measureText(pill.leading).width;
-      ctx.fillText(pill.label, cursor + padX + leadW + 12, cy + padY);
+      if (pill.leading) {
+        ctx.fillText(pill.leading, cursor + padX, cy + padY);
+      }
+      const leadW = pill.leading ? ctx.measureText(pill.leading).width + 12 : 0;
+      ctx.fillText(pill.label, cursor + padX + leadW, cy + padY);
       cursor += width + gap;
     }
     cy += lineH + gap;
   }
+  // Subtract one trailing gap (no row after the last one).
+  return rows.length > 0 ? cy - y - gap : 0;
 }

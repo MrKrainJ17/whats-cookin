@@ -69,88 +69,86 @@ QUALITY BAR
 - Each recipe must be ORIGINAL — your own version, not a verbatim copy of a published recipe.
 
 EMOJI SELECTION
-For the "emoji" field of each recipe, pick the SINGLE most visually-accurate food emoji that represents what's actually on the plate. Be specific to the dish — don't default to generic emojis like 🍴 🍽️ 🥄 unless absolutely nothing else fits. If two emojis could work, pick the one that shows the dish's signature element — the thing a person scrolling past would instantly recognize as YOUR dish.
+For the "emoji" field, pick the single most visually accurate emoji that represents what's actually on the plate. Be very specific — never default to generic emojis like 🍴 🍽️ 🥄 🫕 unless absolutely nothing else fits. Follow these rules:
 
-Pasta dishes
-- 🍝 spaghetti, fettuccine, linguine, long noodles
-- 🍜 ramen, pho, asian noodle soup
-- 🥘 baked pasta, lasagna, ziti, casserole-style pasta
+- Pasta dishes with tomato sauce → 🍝
+- Ramen, pho, noodle soups → 🍜
+- Sushi, sashimi → 🍣
+- Rice bowls, donburi, fried rice → 🍱
+- Curry over rice → 🍛
+- Tacos → 🌮
+- Burritos, wraps → 🌯
+- Pizza → 🍕
+- Burgers → 🍔
+- Sandwiches, subs → 🥪
+- Salads → 🥗
+- Soups and stews → 🍲
+- Dumplings, gyoza, potstickers → 🥟
+- Steak, beef cuts → 🥩
+- Ribs, bone-in meat → 🍖
+- Chicken pieces, wings, drumsticks → 🍗
+- Shrimp, prawns → 🍤
+- Fish dishes → 🐟
+- Salmon specifically → 🐟
+- Eggs (fried, scrambled, omelette) → 🍳
+- Pancakes, waffles → 🥞
+- Waffles specifically → 🧇
+- Bread, toast → 🍞
+- Baguette, garlic bread → 🥖
+- Flatbread, naan, pita → 🫓
+- Avocado dishes → 🥑
+- Corn dishes → 🌽
+- Mushroom dishes → 🍄
+- Broccoli or green veggie dishes → 🥦
+- Stuffed peppers, pepper dishes → 🫑
+- Potato dishes (mashed, roasted, fries) → 🥔
+- Sweet potato dishes → 🍠
+- Tomato-based dishes → 🍅
+- Cheese-heavy dishes → 🧀
+- Chocolate desserts → 🍫
+- Cake → 🎂
+- Cookies → 🍪
+- Ice cream → 🍦
+- Pie → 🥧
+- Smoothies, cold drinks → 🥤
+- Coffee drinks → ☕
+- Lobster → 🦞
+- Crab → 🦀
+- Paella, risotto, jambalaya → 🥘
+- Korean BBQ, grilled meat → 🥩
+- Skewers, kebabs, yakitori → 🍢
+- Hot dogs, sausages → 🌭
+- Bacon-heavy dishes → 🥓
+- Oatmeal, porridge, granola → 🥣
+- Croissants, pastries → 🥐
+- Bagels → 🥯
+- Nachos, chips → 🌮
+- Guacamole → 🥑
+- Hummus → 🫛
+- Poke bowls → 🍱
+- Bibimbap → 🍱
+- Pad thai → 🍜
+- Butter chicken → 🍛
+- Fish and chips → 🐟
+- Mac and cheese → 🧀
+- Grilled cheese → 🧀
+- BLT → 🥪
+- Club sandwich → 🥪
+- Veggie stir fry → 🥦
+- Fried chicken → 🍗
+- Chicken soup → 🍲
+- French onion soup → 🍲
+- Minestrone → 🍲
+- Chili → 🍲
+- Beef stew → 🍲
+- Lentil soup → 🍲
+- Miso soup → 🍜
+- Tom yum → 🍜
 
-Rice dishes
-- 🍚 plain rice, fried rice
-- 🍛 curry over rice
-- 🥘 paella, risotto, jambalaya
-- 🍱 bento bowl, rice bowl
-- 🍙 onigiri / rice balls
+If the dish doesn't match any of the above, pick the emoji that most closely represents the MAIN PROTEIN or MAIN INGREDIENT in the dish. Never pick an emoji based on cooking method or serving vessel — pick based on what the food actually IS.
 
-Soups & stews
-- 🍜 noodle soup, ramen, pho
-- 🍲 hearty soup, stew, chili, gumbo
-- 🥣 light soup, broth-based, breakfast porridge
-
-Salads & bowls
-- 🥗 green salad, garden salad
-- 🍱 grain bowl, buddha bowl, poke bowl
-- 🥙 wrapped salad, gyro, pita
-
-Sandwiches & wraps
-- 🥪 cold sandwich, club, BLT
-- 🌯 burrito, large wrap
-- 🌮 taco, tostada
-- 🥙 pita, gyro, falafel sandwich
-- 🍔 burger
-- 🌭 hot dog
-
-Bread & baked
-- 🍞 plain loaf bread
-- 🥖 baguette, french bread
-- 🥐 croissant, pastry
-- 🥯 bagel
-- 🫓 flatbread, naan, tortilla, pita
-- 🥞 pancakes
-- 🧇 waffles
-
-Meat dishes
-- 🥩 steak, whole cut of beef
-- 🍖 ribs, lamb, bone-in cuts, roast
-- 🍗 chicken pieces, drumsticks, wings
-- 🥓 bacon, pork belly
-- 🌭 sausage dishes
-
-Seafood
-- 🐟 fish fillet, baked fish
-- 🍤 shrimp, prawns, tempura
-- 🦞 lobster
-- 🦀 crab
-- 🐙 octopus
-- 🍣 sushi, sashimi, nigiri
-
-Eggs
-- 🍳 fried, scrambled, omelet, frittata
-- 🥚 boiled, deviled, poached
-
-Veggie-focused (when a single veg defines the dish)
-- 🥦 broccoli-heavy · 🥕 carrot-heavy · 🍅 tomato-heavy · 🥑 avocado-heavy · 🍆 eggplant-heavy · 🥬 leafy green-heavy · 🌽 corn-heavy · 🍄 mushroom-heavy · 🌶️ pepper/spicy · 🫑 bell pepper
-
-Asian cuisine
-- 🍣 sushi, sashimi · 🍱 bento, donburi, rice bowls · 🍙 onigiri · 🥟 dumplings, gyoza, potstickers, wontons · 🍢 skewers, yakitori, oden · 🍤 tempura · 🥠 fortune cookie · 🍡 dango, mochi
-
-Latin cuisine
-- 🌮 taco, tostada · 🌯 burrito · 🫔 tamale · 🥑 guacamole-focused · 🌶️ spicy/chili
-
-Italian
-- 🍕 pizza · 🍝 pasta dishes · 🥖 bruschetta, garlic bread focus · 🧀 cheese-focused
-
-Breakfast
-- 🥞 pancakes · 🧇 waffles · 🍳 eggs · 🥓 bacon · 🥯 bagel · 🥐 croissant · 🥣 oatmeal, granola · 🍞 toast · 🥤 smoothie
-
-Dessert
-- 🍰 cake (slice) · 🎂 whole cake · 🧁 cupcake · 🍪 cookie · 🥧 pie · 🍮 pudding, flan, custard · 🍩 donut · 🍦 ice cream · 🍧 shaved ice · 🍨 ice cream with toppings · 🍫 chocolate · 🍯 honey
-
-Drinks
-- 🥤 cold drink, smoothie · ☕ coffee, latte · 🍵 tea, matcha · 🍷 wine · 🍺 beer · 🥛 milk-based
-
-Pick the emoji someone scrolling past would instantly recognize as YOUR dish. Never default to 🍴 🍽️ 🥄 when a specific emoji fits.
+NUTRITION
+For each recipe, estimate the nutrition per serving based on the ingredients and quantities. Be realistic — use standard nutrition databases as reference. Include: calories (kcal), protein (g), carbs (g), fat (g), fiber (g), sugar (g), sodium (mg), and serving size description. These are estimates, not exact values.
 
 OUTPUT FORMAT
 Stream the 5 recipes as raw JSON objects, one after another. NO array brackets, NO commas between objects, NO prose, NO markdown, NO code fences. Your response must contain exactly 5 top-level JSON objects, concatenated. Whitespace between objects is fine. The very first character of your response must be "{". Each object matches this schema:
@@ -167,7 +165,17 @@ Stream the 5 recipes as raw JSON objects, one after another. NO array brackets, 
   "emoji": "<one food emoji>",
   "ingredients": [{ "name": "<lowercase>", "amount": "<string>", "unit": "<string>" }],
   "steps": [{ "step": <integer>, "instruction": "<string>", "timerMinutes": <integer|null> }],
-  "tips": "<optional one-line tip; omit the field entirely if not useful>"
+  "tips": "<optional one-line tip; omit the field entirely if not useful>",
+  "nutrition": {
+    "calories": <integer kcal per serving>,
+    "protein": <integer grams per serving>,
+    "carbs": <integer grams per serving>,
+    "fat": <integer grams per serving>,
+    "fiber": <integer grams per serving>,
+    "sugar": <integer grams per serving>,
+    "sodium": <integer milligrams per serving>,
+    "servingSize": "<short description, e.g. 1 plate (approx. 400g)>"
+  }
 }`;
 
 const VALID_CATEGORIES = new Set([
@@ -716,6 +724,39 @@ function normalizeRecipe(r, idx) {
     ingredients,
     steps,
     tips: typeof r.tips === "string" && r.tips.trim() ? r.tips.trim() : null,
+    nutrition: normalizeNutrition(r.nutrition),
+  };
+}
+
+// Validate the AI's per-serving nutrition estimate. Returns null if the object
+// is missing or has none of the core macros, so the UI can cleanly skip it.
+function normalizeNutrition(n) {
+  if (!n || typeof n !== "object") return null;
+  const num = (v) =>
+    typeof v === "number" && Number.isFinite(v) && v >= 0 ? Math.round(v) : null;
+
+  const calories = num(n.calories);
+  const protein = num(n.protein);
+  const carbs = num(n.carbs);
+  const fat = num(n.fat);
+
+  // Need at least one core macro to be worth showing.
+  if (calories == null && protein == null && carbs == null && fat == null) {
+    return null;
+  }
+
+  return {
+    calories,
+    protein,
+    carbs,
+    fat,
+    fiber: num(n.fiber),
+    sugar: num(n.sugar),
+    sodium: num(n.sodium),
+    servingSize:
+      typeof n.servingSize === "string" && n.servingSize.trim()
+        ? n.servingSize.trim()
+        : null,
   };
 }
 

@@ -14,6 +14,7 @@ import {
 import { logEvent } from "../lib/eventTracker.js";
 import { addToBlocklist } from "../lib/blocklist.js";
 import { addRecipeIngredients, notify as notifyGrocery } from "../lib/groceryList.js";
+import { getNutritionBadges } from "../lib/nutrition.js";
 import AddedToast from "../components/grocery/AddedToast.jsx";
 
 const TARGET_RECIPE_COUNT = 5;
@@ -335,6 +336,40 @@ export default function Recipes() {
   );
 }
 
+// Standout nutrition badges (High Protein / Light Meal / High Fiber) — sit
+// just below the recipe title. Renders nothing when none apply.
+function NutritionBadges({ nutrition }) {
+  const badges = getNutritionBadges(nutrition);
+  if (badges.length === 0) return null;
+  return (
+    <span className="mt-1.5 flex flex-wrap gap-1.5">
+      {badges.map((b) => (
+        <span
+          key={b.key}
+          className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-serif font-bold leading-none ${b.className}`}
+        >
+          {b.label} <span aria-hidden="true">{b.emoji}</span>
+        </span>
+      ))}
+    </span>
+  );
+}
+
+// Compact one-line macro summary below the time/difficulty/serves stats.
+function NutritionRow({ nutrition }) {
+  const parts = [];
+  if (nutrition.calories != null) parts.push(`🔥 ~${nutrition.calories} cal`);
+  if (nutrition.protein != null) parts.push(`💪 ~${nutrition.protein}g protein`);
+  if (nutrition.carbs != null) parts.push(`🍞 ~${nutrition.carbs}g carbs`);
+  if (nutrition.fat != null) parts.push(`🫒 ~${nutrition.fat}g fat`);
+  if (parts.length === 0) return null;
+  return (
+    <span className="mt-2 block text-[12px] text-mocha leading-snug">
+      {parts.join(" · ")}
+    </span>
+  );
+}
+
 function RecipeCard({
   recipe,
   onOpen,
@@ -369,6 +404,7 @@ function RecipeCard({
           <span className="block font-serif text-2xl font-bold text-ink leading-tight">
             {recipe.name}
           </span>
+          <NutritionBadges nutrition={recipe.nutrition} />
           {recipe.tagline && (
             <span className="block font-body text-sm text-mocha mt-1 leading-snug">
               {recipe.tagline}
@@ -383,6 +419,7 @@ function RecipeCard({
               <span className="ink-pill">serves {recipe.servings}</span>
             )}
           </span>
+          {recipe.nutrition && <NutritionRow nutrition={recipe.nutrition} />}
           <span className="mt-3 inline-flex items-center gap-1.5 font-serif italic text-terracotta text-sm">
             Cook this <HandArrow />
           </span>

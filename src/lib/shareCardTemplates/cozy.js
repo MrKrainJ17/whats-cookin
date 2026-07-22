@@ -16,6 +16,7 @@ import {
   difficultyLabel,
   formatTagsForCard,
   drawLogoWatermark,
+  buildChipPills,
 } from "./shared.js";
 
 const BG = "#fbf6ec";
@@ -27,9 +28,11 @@ const PILL_BG = "rgba(200, 66, 27, 0.10)";
 export function drawCozy(ctx, recipe, userOptions = {}) {
   const c = extractCardContent(recipe, userOptions);
 
-  // Background
+  // Background — fill the entire scratch canvas so the final crop
+  // never reveals transparent pixels at the bottom.
+  const canvasH = ctx.canvas.height;
   ctx.fillStyle = BG;
-  ctx.fillRect(0, 0, CARD_W, CARD_H);
+  ctx.fillRect(0, 0, CARD_W, canvasH);
 
   // Subtle radial wash for warmth
   const wash = ctx.createRadialGradient(
@@ -39,7 +42,7 @@ export function drawCozy(ctx, recipe, userOptions = {}) {
   wash.addColorStop(0, "rgba(255, 220, 180, 0.35)");
   wash.addColorStop(1, "rgba(255, 220, 180, 0)");
   ctx.fillStyle = wash;
-  ctx.fillRect(0, 0, CARD_W, CARD_H);
+  ctx.fillRect(0, 0, CARD_W, canvasH);
 
   // "I JUST COOKED..."
   ctx.fillStyle = TEXT_MUTED;
@@ -114,14 +117,12 @@ export function drawCozy(ctx, recipe, userOptions = {}) {
     gap: 16,
   });
 
-  // Ingredient chips
+  // Ingredient chips — capture the height drawPillRow consumed so the
+  // rating + note below cannot creep up and overlap them.
   if (c.ingredients.length > 0) {
     cursorY += 30;
-    const ingPills = c.ingredients.map((i) => ({
-      label: capitalize(i.name),
-      leading: i.emoji,
-    }));
-    drawPillRow(ctx, ingPills, CARD_W / 2, cursorY, CONTENT_W, {
+    const ingPills = buildChipPills(c, capitalize);
+    cursorY += drawPillRow(ctx, ingPills, CARD_W / 2, cursorY, CONTENT_W, {
       font: '500 30px "Inter", system-ui, sans-serif',
       leadingFont: '30px "Apple Color Emoji", "Segoe UI Emoji", sans-serif',
       bg: "#ffffff",
@@ -133,33 +134,43 @@ export function drawCozy(ctx, recipe, userOptions = {}) {
     });
   }
 
-  // Rating + note (positioned above watermark)
-  const watermarkY = CARD_H - SAFE_BOTTOM - 70;
-  let extrasBottom = watermarkY - 30;
-  if (c.note) {
-    ctx.fillStyle = TEXT_MUTED;
-    ctx.font = 'italic 400 32px "Playfair Display", Georgia, serif';
-    const noteLines = wrapText(ctx, `"${c.note}"`, CONTENT_W - 100, 2);
-    let ny = extrasBottom - (noteLines.length - 1) * 44 - 20;
-    for (const line of noteLines) {
-      drawCenteredText(ctx, line, CARD_W / 2, ny);
-      ny += 44;
-    }
-    extrasBottom -= noteLines.length * 44 + 30;
-  }
+  // Rating → note → watermark, all top-down. Every element gets a
+  // guaranteed gap from the one above it. Watermark sits at least
+  // (default safe-area position) but flows further down if the note
+  // pushed past it.
   if (c.rating) {
+    cursorY += 32;
     ctx.fillStyle = ACCENT;
     ctx.font = '700 44px "Inter", system-ui, sans-serif';
     drawCenteredText(
       ctx,
       `${c.rating.emoji}  ${c.rating.label}`,
       CARD_W / 2,
-      extrasBottom - 50,
+      cursorY,
     );
+    cursorY += 56;
+  }
+  if (c.note) {
+    cursorY += 20;
+    ctx.fillStyle = TEXT_MUTED;
+    ctx.font = 'italic 400 32px "Playfair Display", Georgia, serif';
+    const noteLines = wrapText(ctx, `"${c.note}"`, CONTENT_W - 100, 2);
+    for (const line of noteLines) {
+      drawCenteredText(ctx, line, CARD_W / 2, cursorY);
+      cursorY += 44;
+    }
   }
 
-  // Watermark
+  // Watermark — at least the default y, but always at least 60px below
+  // whatever content ended the bottom stack. Tracks the canvas growing
+  // taller when chips/note are long.
+  const defaultWatermarkY = CARD_H - SAFE_BOTTOM - 70;
+  const watermarkY = Math.max(defaultWatermarkY, cursorY + 60);
   drawWatermark(ctx, watermarkY);
+
+  // Return Y of the bottommost pixel so generateShareCard can crop.
+  // Watermark label sits ~75px tall (logo + text).
+  return watermarkY + 80;
 }
 
 function drawLetterSpaced(ctx, text, x, y, spacing) {

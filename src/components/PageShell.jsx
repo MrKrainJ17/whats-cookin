@@ -10,6 +10,7 @@ export default function PageShell({
   children,
   fitToViewport = false,
   compact = false,
+  maxWidthClass = "max-w-md",
 }) {
   // `compact` tightens top/bottom padding for pages (like Home) that need
   // every vertical pixel to fit a dense layout in standard viewport
@@ -17,7 +18,7 @@ export default function PageShell({
   const padY = compact ? "pt-3 pb-4" : "pt-8 pb-12";
   return (
     <div
-      className={`w-full px-5 ${padY} max-w-md mx-auto flex flex-col ${
+      className={`w-full px-5 ${padY} ${maxWidthClass} mx-auto flex flex-col ${
         fitToViewport ? "h-dvh overflow-hidden" : "min-h-dvh"
       }`}
     >

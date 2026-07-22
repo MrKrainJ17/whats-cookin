@@ -37,6 +37,16 @@ export default function ShareCardPreview({
   const [template, setTemplate] = useState(getDefaultTemplate());
   const [rating, setRating] = useState(initialRating);
   const [note, setNote] = useState("");
+  const noteRef = useRef(null);
+
+  // Auto-expand the note textarea to fit its content so text never gets
+  // clipped — reset to auto first to allow it to shrink when text is removed.
+  useEffect(() => {
+    const el = noteRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [note]);
   const [tags, setTags] = useState([]);
   const [tagDraft, setTagDraft] = useState("");
   const [recentTags] = useState(() => getRecentTags());
@@ -212,7 +222,9 @@ export default function ShareCardPreview({
         Pick a style. Tag your crew. Add a rating or note if you want.
       </p>
 
-      <div className="relative">
+      {/* Image section — flex-shrink-0 so the note textarea below can
+       * never grow upward into the image. */}
+      <div className="relative flex-shrink-0">
         <div className="w-[260px] sm:w-[300px] aspect-[9/16] rounded-2xl bg-white shadow-xl overflow-hidden">
           {previewUrl ? (
             <img
@@ -237,6 +249,9 @@ export default function ShareCardPreview({
 
       <TemplateSwitcher value={template} onChange={onTemplateChange} />
 
+      {/* Inputs section — explicit mt-5 enforces ≥20px gap between the
+       * image group above and the first field per the spec, even on
+       * small viewports. */}
       <div className="mt-5 w-full max-w-sm flex flex-col gap-4">
         <RatingSelector value={rating} onChange={setRating} />
 
@@ -290,12 +305,26 @@ export default function ShareCardPreview({
           <label className="block text-xs font-semibold uppercase tracking-wide text-charcoal/60 mb-1.5">
             Add a note (optional)
           </label>
-          <input
-            type="text"
+          <textarea
+            ref={noteRef}
             value={note}
             onChange={(e) => setNote(e.target.value.slice(0, 80))}
             placeholder="Made it for date night…"
-            className="w-full rounded-full bg-white border border-charcoal/15 px-4 py-2.5 text-sm focus:outline-none focus:border-tomato"
+            rows={2}
+            // Text wraps and stays centered; the field grows downward as
+            // the user types (auto-expand effect below) and never scrolls
+            // sideways or cuts text off.
+            className="block rounded-2xl bg-white border border-charcoal/15 text-sm focus:outline-none focus:border-tomato"
+            style={{
+              whiteSpace: "normal",
+              textAlign: "center",
+              wordWrap: "break-word",
+              overflowWrap: "break-word",
+              width: "100%",
+              boxSizing: "border-box",
+              padding: "12px 20px",
+              resize: "none",
+            }}
           />
           <p className="text-[10px] text-charcoal/40 mt-1 text-right">
             {note.length}/80
@@ -378,17 +407,21 @@ function TagChip({ label, onRemove }) {
 }
 
 function RatingSelector({ value, onChange }) {
+  // Five-level rating per the redesign spec. The same id strings drive
+  // the icon/label that lands inside every share-card template.
   const options = [
-    { id: "loved", emoji: "⭐", label: "Loved" },
-    { id: "fine", emoji: "🤷", label: "It was fine" },
-    { id: "never_again", emoji: "👎", label: "Never again" },
+    { id: "loved", emoji: "⭐", label: "New favorite" },
+    { id: "really_good", emoji: "😋", label: "Really good" },
+    { id: "solid", emoji: "👍", label: "Pretty solid" },
+    { id: "okay", emoji: "🤷", label: "It was okay" },
+    { id: "again", emoji: "🔁", label: "Would make again" },
   ];
   return (
     <div>
       <label className="block text-xs font-semibold uppercase tracking-wide text-charcoal/60 mb-1.5">
         Rate this dish
       </label>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-5 gap-1.5">
         {options.map((o) => {
           const active = value === o.id;
           return (
@@ -397,7 +430,7 @@ function RatingSelector({ value, onChange }) {
               type="button"
               onClick={() => onChange(active ? null : o.id)}
               aria-pressed={active}
-              className={`rounded-xl px-2 py-2 text-xs font-semibold transition border ${
+              className={`rounded-xl px-1 py-1.5 text-[10px] font-semibold transition border leading-tight ${
                 active
                   ? "bg-tomato/10 border-tomato text-tomato-deep"
                   : "bg-white border-charcoal/15 text-charcoal/70 hover:border-charcoal/30"

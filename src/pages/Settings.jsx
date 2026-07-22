@@ -8,6 +8,7 @@ import {
 } from "../lib/eventTracker.js";
 import { clearBlocklist } from "../lib/blocklist.js";
 import { clearFavorites } from "../lib/favorites.js";
+import ThemeToggle from "../components/ThemeToggle.jsx";
 
 // Settings now covers app-level controls only — anything taste / account
 // related lives on the Profile page (/profile). This file used to host
@@ -116,6 +117,16 @@ export default function Settings() {
           →
         </span>
       </button>
+
+      <section className="mt-6 rounded-2xl bg-white shadow-sm border border-charcoal/10 p-5">
+        <h3 className="text-lg font-bold text-charcoal mb-3">Appearance</h3>
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-sm text-charcoal/70">
+            Light or dark theme for the whole app
+          </span>
+          <ThemeToggle />
+        </div>
+      </section>
 
       <section className="mt-6 rounded-2xl bg-white shadow-sm border border-charcoal/10 p-5">
         <h3 className="text-lg font-bold text-charcoal mb-3">

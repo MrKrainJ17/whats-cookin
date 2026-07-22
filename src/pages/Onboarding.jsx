@@ -13,7 +13,10 @@ import {
   savePartialAndSkip,
 } from "../lib/preferences.js";
 
-const TOTAL_STEPS = 9;
+// 8 steps now that Card 8 (Ingredient Dislikes) was removed — that
+// question is already covered by the custom-avoid text input on
+// Card 3 (Allergies). Card 8 here is the Done screen.
+const TOTAL_STEPS = 8;
 
 const DIET_OPTIONS = [
   { value: "none", icon: "🍴", label: "No restrictions" },
@@ -225,19 +228,8 @@ export default function Onboarding() {
             />
           )}
           {step === 8 && (
-            <Card8Dislikes
+            <Card8Done
               key="step-8"
-              direction={direction}
-              answers={answers}
-              update={update}
-              onNext={goNext}
-              onBack={goBack}
-              onSkip={requestSkip}
-            />
-          )}
-          {step === 9 && (
-            <Card9Done
-              key="step-9"
               direction={direction}
               onFinish={handleFinish}
             />
@@ -636,94 +628,12 @@ function Card7Time({ direction, answers, update, onNext, onBack, onSkip }) {
   );
 }
 
-/* ── Card 8: Dislikes (optional) ─────────────────────────────────────── */
+/* ── Card 8: Done ─────────────────────────────────────────────────────── */
 
-function Card8Dislikes({ direction, answers, update, onNext, onBack, onSkip }) {
-  const [draft, setDraft] = useState("");
-
-  const add = () => {
-    const value = draft.trim().toLowerCase();
-    if (!value) return;
-    if (answers.ingredientDislikes.includes(value)) {
-      setDraft("");
-      return;
-    }
-    update({ ingredientDislikes: [...answers.ingredientDislikes, value] });
-    setDraft("");
-  };
-
-  const remove = (value) => {
-    update({
-      ingredientDislikes: answers.ingredientDislikes.filter((v) => v !== value),
-    });
-  };
-
+function Card8Done({ direction, onFinish }) {
   return (
     <SurveyCard
       step={8}
-      totalSteps={TOTAL_STEPS}
-      direction={direction}
-      onSkip={onSkip}
-      onNext={onNext}
-      onBack={onBack}
-      nextLabel="Continue"
-      skipPrompt="Skip this step"
-    >
-      <Header
-        title="Any ingredients you just don't like?"
-        sub="Be specific — we'll quietly avoid them"
-      />
-      <div className="mt-5 flex gap-2">
-        <input
-          type="text"
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === ",") {
-              e.preventDefault();
-              add();
-            }
-          }}
-          placeholder="cilantro, mushrooms, olives, blue cheese…"
-          className="ink-input flex-1"
-          autoCapitalize="off"
-          autoComplete="off"
-          spellCheck="false"
-        />
-        <button
-          type="button"
-          onClick={add}
-          className="font-serif font-bold text-ink bg-paper-warm border-2 border-ink rounded-lg px-4 shadow-[3px_3px_0_0_var(--color-ink)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_var(--color-ink)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-[0_0_0_0_var(--color-ink)] transition-transform"
-        >
-          Add
-        </button>
-      </div>
-      {answers.ingredientDislikes.length > 0 && (
-        <div className="mt-4 flex flex-wrap gap-2">
-          {answers.ingredientDislikes.map((value) => (
-            <SelectableChip
-              key={value}
-              label={value}
-              selected={true}
-              removable
-              onRemove={() => remove(value)}
-            />
-          ))}
-        </div>
-      )}
-      <p className="font-script text-base text-mocha/80 mt-4 leading-none">
-        optional — totally fine to skip
-      </p>
-    </SurveyCard>
-  );
-}
-
-/* ── Card 9: Done ─────────────────────────────────────────────────────── */
-
-function Card9Done({ direction, onFinish }) {
-  return (
-    <SurveyCard
-      step={9}
       totalSteps={TOTAL_STEPS}
       direction={direction}
       hideSkip

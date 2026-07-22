@@ -1,8 +1,7 @@
 // Smart ingredient autocomplete + spell-check.
 //
-// Used in three places:
+// Used in two places:
 //   • TypeIngredients — live suggestion chips and a "Did you mean…" prompt
-//   • SpeakIngredients — auto-correct each parsed voice-transcript token
 //   • GroceryList's AddItemModal — same chips as TypeIngredients
 //
 // All pure JS — no deps. Fuzzy matching uses Levenshtein for "off by a

@@ -1,5 +1,5 @@
-// Bold & Modern — deep navy background, mustard/coral accent, heavy
-// sans-serif. Sneaker-drop energy.
+// Dark & Moody — deep navy background, gold accent, heavy sans-serif.
+// Sneaker-drop energy with magazine restraint.
 
 import {
   CARD_W,
@@ -15,12 +15,13 @@ import {
   difficultyLabel,
   formatTagsForCard,
   drawLogoWatermark,
+  buildChipPills,
 } from "./shared.js";
 
-const BG = "#0f172a";
-const ACCENT = "#fbbf24"; // mustard
-const ACCENT_2 = "#ff7a59"; // coral
-const TEXT_PRIMARY = "#f8fafc";
+const BG = "#0F1923";
+const ACCENT = "#E8B14C"; // gold
+const ACCENT_2 = "#E8B14C"; // also gold for the rating label
+const TEXT_PRIMARY = "#FFFFFF";
 const TEXT_MUTED = "#94a3b8";
 
 export function drawBold(ctx, recipe, userOptions = {}) {
@@ -28,7 +29,7 @@ export function drawBold(ctx, recipe, userOptions = {}) {
 
   // Background
   ctx.fillStyle = BG;
-  ctx.fillRect(0, 0, CARD_W, CARD_H);
+  ctx.fillRect(0, 0, CARD_W, ctx.canvas.height);
 
   // Bold accent block at top-left
   ctx.fillStyle = ACCENT;
@@ -93,48 +94,49 @@ export function drawBold(ctx, recipe, userOptions = {}) {
   ctx.fillText(stats.join("  ·  "), CONTENT_LEFT, cursorY);
   cursorY += 60;
 
-  // Ingredient chips
+  // Ingredient chips — dark border + gold text, with "+N more" overflow.
   if (c.ingredients.length > 0) {
-    const ingPills = c.ingredients.map((i) => ({
-      label: i.name.toUpperCase(),
-      leading: i.emoji,
-    }));
-    drawPillRow(ctx, ingPills, CARD_W / 2, cursorY, CONTENT_W, {
+    const ingPills = buildChipPills(c, (s) => s.toUpperCase());
+    cursorY += drawPillRow(ctx, ingPills, CARD_W / 2, cursorY, CONTENT_W, {
       font: '700 28px "Space Grotesk", system-ui, sans-serif',
       leadingFont: '28px "Apple Color Emoji", "Segoe UI Emoji", sans-serif',
-      bg: "#1e293b",
-      fg: TEXT_PRIMARY,
+      bg: "#1A2533",
+      fg: ACCENT,
       padX: 24,
       padY: 14,
       radius: 8,
       gap: 14,
+      border: { color: ACCENT, width: 1.5 },
     });
   }
 
-  // Rating + note above watermark
-  const watermarkY = CARD_H - SAFE_BOTTOM - 70;
-  let extrasBottom = watermarkY - 40;
-  if (c.note) {
-    ctx.fillStyle = TEXT_PRIMARY;
-    ctx.font = '500 30px "Space Grotesk", system-ui, sans-serif';
-    const noteLines = wrapText(ctx, `"${c.note}"`, CONTENT_W - 80, 2);
-    let ny = extrasBottom - (noteLines.length - 1) * 42 - 30;
-    for (const line of noteLines) {
-      const w = ctx.measureText(line).width;
-      ctx.fillText(line, (CARD_W - w) / 2, ny);
-      ny += 42;
-    }
-    extrasBottom -= noteLines.length * 42 + 30;
-  }
+  // Rating → note → watermark, top-down with guaranteed gaps.
   if (c.rating) {
+    cursorY += 32;
     ctx.fillStyle = ACCENT_2;
     ctx.font = '800 44px "Space Grotesk", system-ui, sans-serif';
     const label = `${c.rating.emoji}  ${c.rating.label.toUpperCase()}`;
     const w = ctx.measureText(label).width;
-    ctx.fillText(label, (CARD_W - w) / 2, extrasBottom - 60);
+    ctx.fillText(label, (CARD_W - w) / 2, cursorY);
+    cursorY += 56;
+  }
+  if (c.note) {
+    cursorY += 20;
+    ctx.fillStyle = TEXT_PRIMARY;
+    ctx.font = '500 30px "Space Grotesk", system-ui, sans-serif';
+    const noteLines = wrapText(ctx, `"${c.note}"`, CONTENT_W - 80, 2);
+    for (const line of noteLines) {
+      const w = ctx.measureText(line).width;
+      ctx.fillText(line, (CARD_W - w) / 2, cursorY);
+      cursorY += 42;
+    }
   }
 
-  // Watermark — accent bar + logo + text
+  // Watermark — accent bar + logo + text. Always at least 60px below
+  // the note (or 60px below the default safe position, whichever's
+  // lower on the card).
+  const defaultWatermarkY = CARD_H - SAFE_BOTTOM - 70;
+  const watermarkY = Math.max(defaultWatermarkY, cursorY + 60);
   ctx.fillStyle = ACCENT;
   ctx.fillRect(CARD_W / 2 - 70, watermarkY + 70, 140, 4);
   ctx.fillStyle = TEXT_MUTED;
@@ -143,4 +145,5 @@ export function drawBold(ctx, recipe, userOptions = {}) {
     logoSize: 52,
     gap: 18,
   });
+  return watermarkY + 90;
 }

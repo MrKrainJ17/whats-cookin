@@ -66,6 +66,14 @@ export default function RecipeDetail() {
     return s && s.recipeId === routeId ? s : null;
   });
 
+  // Always prefer a recipe handed to us via navigation state (e.g. tapping the
+  // "last cooked" polaroid) before falling back to a resumable cooking session.
+  console.log(
+    "[RecipeDetail] location.state?.recipe:",
+    location.state?.recipe,
+    "| savedSession recipe:",
+    savedSession?.recipe,
+  );
   const recipe = location.state?.recipe || savedSession?.recipe || null;
 
   const [cooking, setCooking] = useState(false);
@@ -173,16 +181,43 @@ export default function RecipeDetail() {
               ← Back
             </button>
             <div className="flex-1 flex flex-col items-center justify-center text-center gap-4 px-4">
-              <p className="font-script text-2xl text-mocha leading-snug">
-                that recipe wandered off
-              </p>
-              <button
-                type="button"
-                onClick={() => navigate("/")}
-                className="brut-button justify-center"
-              >
-                <span className="font-serif text-lg font-bold">Start over</span>
-              </button>
+              {location.state?.incompleteRecipe ? (
+                <>
+                  <p className="font-script text-2xl text-mocha leading-snug">
+                    This recipe wasn't saved completely — try cooking something
+                    new!
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/")}
+                    className="font-serif font-bold text-white bg-terracotta border-2 border-ink rounded-lg px-4 py-2.5 shadow-[4px_4px_0_0_var(--color-ink)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_var(--color-ink)] transition-transform"
+                  >
+                    🏠 Go home
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="font-script text-2xl text-mocha leading-snug">
+                    that recipe wandered off
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => navigate("/")}
+                      className="font-serif font-bold text-white bg-terracotta border-2 border-ink rounded-lg px-4 py-2.5 shadow-[4px_4px_0_0_var(--color-ink)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_var(--color-ink)] transition-transform"
+                    >
+                      🏠 Go home
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => navigate(-1)}
+                      className="font-serif font-bold text-ink bg-paper-warm border-2 border-ink rounded-lg px-4 py-2.5 shadow-[4px_4px_0_0_var(--color-ink)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_var(--color-ink)] transition-transform"
+                    >
+                      ← Go back
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </PageShell>
@@ -345,6 +380,9 @@ export default function RecipeDetail() {
             </button>
           </Section>
 
+          {/* Nutrition */}
+          {recipe.nutrition && <NutritionFacts nutrition={recipe.nutrition} />}
+
           {/* Steps */}
           <Section title="Instructions">
             <ol className="flex flex-col gap-5">
@@ -431,6 +469,81 @@ function Section({ title, children }) {
       </h3>
       {children}
     </section>
+  );
+}
+
+/* ── AI-estimated nutrition facts (between ingredients and steps) ────────── */
+
+function NutritionFacts({ nutrition }) {
+  const rows = [
+    nutrition.calories != null && {
+      emoji: "🔥",
+      label: "Calories",
+      value: `~${nutrition.calories} kcal`,
+    },
+    nutrition.protein != null && {
+      emoji: "💪",
+      label: "Protein",
+      value: `~${nutrition.protein}g`,
+    },
+    nutrition.carbs != null && {
+      emoji: "🍞",
+      label: "Carbs",
+      value: `~${nutrition.carbs}g`,
+    },
+    nutrition.fat != null && { emoji: "🫒", label: "Fat", value: `~${nutrition.fat}g` },
+    nutrition.fiber != null && {
+      emoji: "🌾",
+      label: "Fiber",
+      value: `~${nutrition.fiber}g`,
+    },
+    nutrition.sugar != null && {
+      emoji: "🍬",
+      label: "Sugar",
+      value: `~${nutrition.sugar}g`,
+    },
+    nutrition.sodium != null && {
+      emoji: "🧂",
+      label: "Sodium",
+      value: `~${nutrition.sodium}mg`,
+    },
+    nutrition.servingSize && {
+      emoji: "🍽️",
+      label: "Serving",
+      value: nutrition.servingSize,
+    },
+  ].filter(Boolean);
+
+  if (rows.length === 0) return null;
+
+  return (
+    <Section title="Nutrition Facts">
+      <p className="font-script text-lg text-mocha -mt-2 mb-3 leading-none">
+        per serving — these are estimates
+      </p>
+      <div className="border-2 border-ink rounded-xl overflow-hidden shadow-[4px_4px_0_0_var(--color-ink)]">
+        {rows.map((row, i) => (
+          <div
+            key={row.label}
+            className="flex items-center justify-between px-4 py-2.5"
+            style={{
+              background:
+                i % 2 === 0 ? "var(--color-cream)" : "var(--color-paper-warm)",
+            }}
+          >
+            <span className="font-body text-ink flex items-center gap-2">
+              <span aria-hidden="true">{row.emoji}</span>
+              {row.label}
+            </span>
+            <span className="font-serif font-bold text-ink">{row.value}</span>
+          </div>
+        ))}
+      </div>
+      <p className="font-script text-xs text-mocha/70 mt-2 text-center">
+        ⚠️ these are estimates only — not exact values. for precise nutrition
+        info use a dedicated app like MyFitnessPal.
+      </p>
+    </Section>
   );
 }
 
