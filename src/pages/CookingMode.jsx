@@ -690,7 +690,7 @@ export default function CookingMode({
       exitToDetail(true);
     };
     return (
-      <div className="fixed inset-0 z-50 bg-cream overflow-y-auto">
+      <div className="fixed inset-0 z-50 bg-cream overflow-hidden">
         <div className="min-h-full flex flex-col items-center px-5 py-6">
           <ShareCardPreview
             recipe={recipe}

@@ -151,7 +151,7 @@ export default function Onboarding() {
   return (
     <>
       <PaperBackdrop />
-      <PageShell>
+      <PageShell fitToViewport>
         <div className="relative z-10 flex flex-col flex-1 min-h-[calc(100dvh-80px)]">
           {step === 1 && (
             <Card1Welcome

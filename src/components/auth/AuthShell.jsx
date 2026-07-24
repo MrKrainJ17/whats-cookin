@@ -15,7 +15,7 @@ export default function AuthShell({
   return (
     <>
       <PaperBackdrop />
-      <PageShell>
+      <PageShell fitToViewport>
         <div className="relative z-10 flex flex-col flex-1">
           {!hideBack && (
             <button

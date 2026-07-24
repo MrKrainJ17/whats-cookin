@@ -178,7 +178,7 @@ export default function Recipes() {
     <>
       <PaperBackdrop />
 
-      <PageShell>
+      <PageShell scrollable>
         <div className="relative z-10 flex flex-col flex-1">
           {similarTo ? (
             <HandBack

@@ -21,7 +21,7 @@ export default function Welcome() {
   return (
     <>
       <PaperBackdrop />
-      <PageShell>
+      <PageShell fitToViewport>
         <div className="relative z-10 flex flex-col flex-1">
           <header className="text-center mt-8">
             <span className="text-5xl inline-block" aria-hidden="true">

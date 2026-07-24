@@ -27,8 +27,28 @@
   --color-mustard-soft: #d4a017;
 }
 
-html, body, #root {
-  min-height: 100%;
+/* App-shell scroll model: the DOCUMENT never scrolls. The body is pinned to
+ * the viewport (position:fixed + overflow:hidden), so NO page can ever scroll
+ * the window — that kills both "the page still scrolls" and the stuck-scroll
+ * bug. Screens that genuinely need to scroll (the recipe results page) do so
+ * inside their own overflow-y region — see PageShell's `scrollable` variant. */
+html {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+body {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+#root {
+  height: 100%;
+  overflow: hidden;
 }
 
 body {
@@ -40,6 +60,12 @@ body {
   color: var(--color-charcoal);
   font-family: var(--font-display);
   -webkit-font-smoothing: antialiased;
+}
+
+/* iOS auto-zooms into any input whose font is smaller than 16px. Forcing a
+ * 16px minimum on all form fields stops that zoom-on-focus behavior. */
+input, textarea, select {
+  font-size: 16px !important;
 }
 
 /* ───────────────────────────────────────────────────────────────────────────
