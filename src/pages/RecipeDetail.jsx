@@ -257,7 +257,7 @@ export default function RecipeDetail() {
     <>
       <PaperBackdrop />
 
-      <PageShell>
+      <PageShell scrollable>
         <div className="relative z-10 flex flex-col">
           {/* Top bar — back + heart + share + menu */}
           <div className="flex items-center justify-between mb-3">

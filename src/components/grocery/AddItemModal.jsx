@@ -8,10 +8,30 @@ export default function AddItemModal({ onClose, onAdd }) {
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState("");
   const [justAdded, setJustAdded] = useState(null);
+  // The visible area (viewport minus the on-screen keyboard). The app body is
+  // position:fixed, so iOS won't scroll a focused input above the keyboard on
+  // its own — instead we size and offset this sheet's container to the exact
+  // visible region (visualViewport top + height) so the bottom-anchored sheet
+  // lands right above the keyboard.
+  const [visible, setVisible] = useState(null);
   const inputRef = useRef(null);
 
   useEffect(() => {
     inputRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return undefined;
+    const update = () =>
+      setVisible({ top: vv.offsetTop, height: vv.height });
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
   }, []);
 
   // Close on Escape — small ergonomics win, matches every other modal
@@ -41,7 +61,11 @@ export default function AddItemModal({ onClose, onAdd }) {
       role="dialog"
       aria-modal="true"
       aria-label="Add grocery item"
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+      className="fixed left-0 w-full z-50 flex items-end sm:items-center justify-center"
+      style={{
+        top: visible ? `${visible.top}px` : 0,
+        height: visible ? `${visible.height}px` : "100dvh",
+      }}
     >
       <button
         type="button"
@@ -49,7 +73,7 @@ export default function AddItemModal({ onClose, onAdd }) {
         onClick={onClose}
         className="absolute inset-0 bg-ink/40 animate-fadeIn"
       />
-      <div className="relative w-full max-w-md brut-card p-5 rounded-b-none sm:rounded-2xl animate-slideUp">
+      <div className="relative w-full max-w-md max-h-full overflow-y-auto brut-card p-5 rounded-b-none sm:rounded-2xl animate-slideUp">
         <header className="flex items-center justify-between mb-4">
           <h3 className="font-serif text-2xl font-extrabold text-ink leading-none">
             Add to list
