@@ -19,17 +19,16 @@ export default function PageShell({
   // every vertical pixel to fit a dense layout in standard viewport heights.
   const padY = compact ? "pt-3 pb-4" : "pt-8 pb-12";
 
-  // The document itself never scrolls (see index.css html/body lock), so both
-  // variants are exactly viewport-tall. Scrollable pages get an internal
-  // overflow-y region; locked pages clip. `dvh` tracks the real mobile
-  // viewport as browser chrome shows/hides.
+  // #root is a fixed, viewport-sized layer (see index.css), so both variants
+  // are exactly its height (h-full). Locked pages clip; scrollable pages get
+  // their own internal overflow-y region.
   const scrollClasses = scrollable
     ? "overflow-y-auto [-webkit-overflow-scrolling:touch] overscroll-contain"
     : "overflow-hidden";
 
   return (
     <div
-      className={`w-full h-dvh px-5 ${padY} ${maxWidthClass} mx-auto flex flex-col ${scrollClasses}`}
+      className={`w-full h-full px-5 ${padY} ${maxWidthClass} mx-auto flex flex-col ${scrollClasses}`}
     >
       {children}
     </div>

@@ -32,22 +32,19 @@
  * the window — that kills both "the page still scrolls" and the stuck-scroll
  * bug. Screens that genuinely need to scroll (the recipe results page) do so
  * inside their own overflow-y region — see PageShell's `scrollable` variant. */
-html {
-  height: 100%;
-  overflow: hidden;
-  overscroll-behavior: none;
-}
+html,
 body {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
   height: 100%;
   overflow: hidden;
   overscroll-behavior: none;
 }
+/* The whole app lives inside #root, pinned as a single fixed, viewport-sized
+ * layer that can NEVER scroll the window (no rubber-band, no stuck-scroll).
+ * Pages that need to scroll do so inside their own overflow-y region — see
+ * PageShell's `scrollable` variant. */
 #root {
-  height: 100%;
+  position: fixed;
+  inset: 0;
   overflow: hidden;
 }
 
