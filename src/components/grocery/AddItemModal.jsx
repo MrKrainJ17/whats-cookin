@@ -61,8 +61,11 @@ export default function AddItemModal({ onClose, onAdd }) {
       role="dialog"
       aria-modal="true"
       aria-label="Add grocery item"
-      className="fixed left-0 w-full z-50 flex items-end sm:items-center justify-center"
+      className="fixed left-0 w-full z-50 flex items-start sm:items-center justify-center px-3 sm:px-4"
       style={{
+        // Pin to the TOP of the visible area. A fixed top-anchored sheet always
+        // sits above the keyboard (which opens at the bottom), so the input is
+        // never covered — no reliance on iOS scrolling a focused field up.
         top: visible ? `${visible.top}px` : 0,
         height: visible ? `${visible.height}px` : "100dvh",
       }}
@@ -73,7 +76,7 @@ export default function AddItemModal({ onClose, onAdd }) {
         onClick={onClose}
         className="absolute inset-0 bg-ink/40 animate-fadeIn"
       />
-      <div className="relative w-full max-w-md max-h-full overflow-y-auto brut-card p-5 rounded-b-none sm:rounded-2xl animate-slideUp">
+      <div className="relative w-full max-w-md max-h-full overflow-y-auto brut-card p-5 rounded-2xl mt-3 sm:mt-0 animate-slideUp">
         <header className="flex items-center justify-between mb-4">
           <h3 className="font-serif text-2xl font-extrabold text-ink leading-none">
             Add to list
