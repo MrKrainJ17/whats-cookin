@@ -56,15 +56,25 @@ export default function AddItemModal({ onClose, onAdd }) {
     inputRef.current?.focus();
   };
 
-  // Close cleanly: blur the focused field so iOS dismisses the keyboard, then
-  // reset any keyboard-induced viewport scroll. Without this, iOS can leave the
-  // fixed app layer offset — showing a dark strip at the top of every page
-  // after the sheet closes.
+  // Close cleanly. iOS scrolls/offsets the fixed app layer (#root) to reveal
+  // the keyboard and doesn't restore it — leaving a dark strip at the top that
+  // survives page navigation (only a full reload clears it). So: blur to
+  // dismiss the keyboard, then AFTER it animates away, reset scroll and force
+  // #root to re-lay-out (translateZ toggle + reflow), which re-pins it to the
+  // viewport exactly like a reload would.
   const handleClose = () => {
     const active = document.activeElement;
     if (active && typeof active.blur === "function") active.blur();
-    window.scrollTo(0, 0);
     onClose();
+    window.setTimeout(() => {
+      window.scrollTo(0, 0);
+      const root = document.getElementById("root");
+      if (root) {
+        root.style.transform = "translateZ(0)";
+        void root.offsetHeight; // force reflow
+        root.style.transform = "";
+      }
+    }, 350);
   };
 
   return (
