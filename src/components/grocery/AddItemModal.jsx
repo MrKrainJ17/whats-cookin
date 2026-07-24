@@ -56,6 +56,17 @@ export default function AddItemModal({ onClose, onAdd }) {
     inputRef.current?.focus();
   };
 
+  // Close cleanly: blur the focused field so iOS dismisses the keyboard, then
+  // reset any keyboard-induced viewport scroll. Without this, iOS can leave the
+  // fixed app layer offset — showing a dark strip at the top of every page
+  // after the sheet closes.
+  const handleClose = () => {
+    const active = document.activeElement;
+    if (active && typeof active.blur === "function") active.blur();
+    window.scrollTo(0, 0);
+    onClose();
+  };
+
   return (
     <div
       role="dialog"
@@ -73,7 +84,7 @@ export default function AddItemModal({ onClose, onAdd }) {
       <button
         type="button"
         aria-label="Close"
-        onClick={onClose}
+        onClick={handleClose}
         className="absolute inset-0 bg-ink/40 animate-fadeIn"
       />
       <div className="relative w-full max-w-md max-h-full overflow-y-auto brut-card p-5 rounded-2xl mt-3 sm:mt-0 animate-slideUp">
@@ -83,7 +94,7 @@ export default function AddItemModal({ onClose, onAdd }) {
           </h3>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="font-script text-lg text-mocha/85 hover:text-ink leading-none"
           >
             Done
