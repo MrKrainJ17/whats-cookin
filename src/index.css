@@ -46,6 +46,7 @@ body {
 #root {
   height: 100%;
   overflow: hidden;
+  position: relative;
 }
 
 body {
@@ -197,8 +198,11 @@ input, textarea, select {
 /* Solid warm cream + an SVG feTurbulence noise overlay for paper-fiber
  * texture. mix-blend-mode: multiply tints the cream slightly darker where
  * the noise lands, reading as warm paper grain rather than dirt. */
+/* Absolute (not fixed) so it stays glued to #root and moves together with all
+ * content. A fixed backdrop is what iOS leaves offset after the keyboard opens,
+ * exposing a dark strip at the top — absolute avoids that entirely. */
 .paper-bg {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
