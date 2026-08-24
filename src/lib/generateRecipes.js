@@ -21,9 +21,11 @@ const client = apiKey
 
 const MODEL = "claude-sonnet-4-5";
 
-const SYSTEM_PROMPT = `You are a creative home cook helping someone make a meal from what they already have.
+const SYSTEM_PROMPT = `⚠️ ABSOLUTE RULE #1 — NO EXCEPTIONS: You are FORBIDDEN from using any ingredient that is not in the user's provided list. The only exceptions are salt, pepper, black pepper, and cooking oil. If a recipe needs an ingredient not on the list, choose a completely different recipe. Do not add garlic if the user didn't list garlic. Do not add butter if the user didn't list butter. Do not add onion if the user didn't list onion. ONLY use what the user gave you. Check every single ingredient in every recipe against the user's list before returning your response. Remove any ingredient that wasn't provided.
 
-The user gives you a list of ingredients. Generate exactly 5 distinct, original recipes that a real home cook would actually make and enjoy.
+You are a creative home cook helping someone make a meal from what they already have.
+
+The user gives you a list of ingredients. Generate up to 5 distinct, original recipes that a real home cook would actually make and enjoy.
 
 PANTRY ASSUMPTION
 You may always assume the user has: salt, pepper, cooking oil, water. Don't list these as missing or required.
@@ -595,9 +597,12 @@ function buildSimilarUserMessage(referenceRecipe, ingredients, preferences) {
 }
 
 function buildUserMessage(ingredients, preferences) {
+  const ingredientLines = ingredients.map((i) => `- ${i}`).join("\n");
   const lines = [
-    `The user has ONLY these ingredients: ${ingredients.join(", ")}.`,
-    "You must work EXCLUSIVELY with these ingredients.",
+    "USER'S AVAILABLE INGREDIENTS (use ONLY these):",
+    ingredientLines,
+    "",
+    "You have NOTHING else available. Work only with the above.",
     "Do not add anything not on this list except salt, pepper, and cooking oil.",
   ];
   if (preferences) {
