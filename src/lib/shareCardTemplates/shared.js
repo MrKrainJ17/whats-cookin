@@ -77,6 +77,74 @@ export function wrapText(ctx, text, maxWidth, maxLines = 2) {
   return lines;
 }
 
+// Wrap text into as many lines as it needs to fit `maxWidth` — NO line cap and
+// NO ellipsis. Long unbroken words are broken character by character so text
+// can never overflow the sides. Used by fitTitleLines to measure how many
+// lines a title needs at a given font size.
+export function wrapTextFull(ctx, text, maxWidth) {
+  if (!text) return [];
+  const words = String(text).split(/\s+/).filter(Boolean);
+  const lines = [];
+  let current = "";
+  for (const word of words) {
+    const test = current ? `${current} ${word}` : word;
+    if (ctx.measureText(test).width <= maxWidth) {
+      current = test;
+      continue;
+    }
+    if (current) {
+      lines.push(current);
+    }
+    if (ctx.measureText(word).width <= maxWidth) {
+      current = word;
+      continue;
+    }
+    // Break a word that's wider than a full line.
+    let chunk = "";
+    for (const ch of word) {
+      if (ctx.measureText(chunk + ch).width <= maxWidth) {
+        chunk += ch;
+        continue;
+      }
+      if (chunk) lines.push(chunk);
+      chunk = ch;
+    }
+    current = chunk;
+  }
+  if (current) lines.push(current);
+  return lines;
+}
+
+// Fit a recipe title so the FULL name is always readable — never cut off with
+// an ellipsis. Wraps onto up to `maxLines` lines (default 3) and shrinks the
+// font from `baseSize` down toward `minSize` until the whole name fits. Returns
+// { lines, size, lineHeight } and leaves ctx.font set to the chosen size.
+//
+//   fontFor(size) -> a CSS font string for that pixel size (preserves the
+//                    template's weight + family)
+//   lineHeightRatio -> line advance as a multiple of font size (keeps each
+//                      template's original vertical spacing)
+export function fitTitleLines(
+  ctx,
+  text,
+  { maxWidth, maxLines = 3, baseSize, minSize, lineHeightRatio, fontFor, step = 4 },
+) {
+  let size = baseSize;
+  let lines;
+  // Shrink until the full name fits in maxLines, or we hit minSize.
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    ctx.font = fontFor(size);
+    lines = wrapTextFull(ctx, text, maxWidth);
+    if (lines.length <= maxLines || size <= minSize) break;
+    size -= step;
+  }
+  // Extremely long single-token names can still exceed maxLines at minSize —
+  // keep maxLines lines (no ellipsis) rather than growing the card.
+  if (lines.length > maxLines) lines = lines.slice(0, maxLines);
+  return { lines, size, lineHeight: Math.round(size * lineHeightRatio) };
+}
+
 // Pretty rounded rectangle path (no fill/stroke — caller decides).
 export function roundRectPath(ctx, x, y, w, h, r) {
   const radius = Math.min(r, w / 2, h / 2);

@@ -9,6 +9,7 @@ import {
   CONTENT_LEFT,
   CONTENT_W,
   wrapText,
+  fitTitleLines,
   drawCenteredText,
   drawHeroEmoji,
   drawPillRow,
@@ -69,12 +70,17 @@ export function drawCozy(ctx, recipe, userOptions = {}) {
 
   // Title (Playfair Display)
   ctx.fillStyle = TEXT_PRIMARY;
-  ctx.font = '900 96px "Playfair Display", Georgia, serif';
-  const titleLines = wrapText(ctx, c.name, CONTENT_W, 2);
+  const { lines: titleLines, lineHeight: titleLH } = fitTitleLines(ctx, c.name, {
+    maxWidth: CONTENT_W,
+    baseSize: 96,
+    minSize: 52,
+    lineHeightRatio: 108 / 96,
+    fontFor: (s) => `900 ${s}px "Playfair Display", Georgia, serif`,
+  });
   let titleY = CARD_H * 0.50;
   for (const line of titleLines) {
     drawCenteredText(ctx, line, CARD_W / 2, titleY);
-    titleY += 108;
+    titleY += titleLH;
   }
 
   // Tagline

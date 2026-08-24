@@ -9,6 +9,7 @@ import {
   SAFE_BOTTOM,
   CONTENT_W,
   wrapText,
+  fitTitleLines,
   drawCenteredText,
   drawHeroEmoji,
   drawPillRow,
@@ -46,12 +47,17 @@ export function drawDiner(ctx, recipe, userOptions = {}) {
 
   // Title — chunky retro serif
   ctx.fillStyle = DEEP;
-  ctx.font = '900 102px "Playfair Display", Georgia, serif';
-  const titleLines = wrapText(ctx, c.name, CONTENT_W, 2);
+  const { lines: titleLines, lineHeight: titleLH } = fitTitleLines(ctx, c.name, {
+    maxWidth: CONTENT_W,
+    baseSize: 102,
+    minSize: 56,
+    lineHeightRatio: 110 / 102,
+    fontFor: (s) => `900 ${s}px "Playfair Display", Georgia, serif`,
+  });
   let titleY = CARD_H * 0.48;
   for (const line of titleLines) {
     drawCenteredText(ctx, line, CARD_W / 2, titleY);
-    titleY += 110;
+    titleY += titleLH;
   }
 
   let cursorY = titleY + 14;

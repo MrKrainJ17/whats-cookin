@@ -9,6 +9,7 @@ import {
   SAFE_BOTTOM,
   CONTENT_W,
   wrapText,
+  fitTitleLines,
   drawCenteredText,
   drawHeroEmoji,
   drawPillRow,
@@ -57,12 +58,21 @@ export function drawNeon(ctx, recipe, userOptions = {}) {
   // Title — neon green, condensed bold, glow
   applyGlow(ctx, NEON);
   ctx.fillStyle = NEON;
-  ctx.font = '900 110px "Space Grotesk", system-ui, sans-serif';
-  const titleLines = wrapText(ctx, c.name.toUpperCase(), CONTENT_W, 2);
+  const { lines: titleLines, lineHeight: titleLH } = fitTitleLines(
+    ctx,
+    c.name.toUpperCase(),
+    {
+      maxWidth: CONTENT_W,
+      baseSize: 110,
+      minSize: 58,
+      lineHeightRatio: 118 / 110,
+      fontFor: (s) => `900 ${s}px "Space Grotesk", system-ui, sans-serif`,
+    },
+  );
   let titleY = CARD_H * 0.48;
   for (const line of titleLines) {
     drawCenteredText(ctx, line, CARD_W / 2, titleY);
-    titleY += 118;
+    titleY += titleLH;
   }
   clearGlow(ctx);
 

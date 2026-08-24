@@ -9,6 +9,7 @@ import {
   SAFE_BOTTOM,
   CONTENT_W,
   wrapText,
+  fitTitleLines,
   drawCenteredText,
   drawHeroEmoji,
   drawPillRow,
@@ -69,12 +70,17 @@ export function drawPlayful(ctx, recipe, userOptions = {}) {
 
   // Handwritten title
   ctx.fillStyle = TEXT_PRIMARY;
-  ctx.font = '700 110px "Caveat", "Patrick Hand", cursive';
-  const titleLines = wrapText(ctx, c.name, CONTENT_W - 80, 2);
+  const { lines: titleLines, lineHeight: titleLH } = fitTitleLines(ctx, c.name, {
+    maxWidth: CONTENT_W - 80,
+    baseSize: 110,
+    minSize: 60,
+    lineHeightRatio: 104 / 110,
+    fontFor: (s) => `700 ${s}px "Caveat", "Patrick Hand", cursive`,
+  });
   let titleY = CARD_H * 0.50;
   for (const line of titleLines) {
     drawCenteredText(ctx, line, CARD_W / 2, titleY);
-    titleY += 104;
+    titleY += titleLH;
   }
 
   let cursorY = titleY + 6;

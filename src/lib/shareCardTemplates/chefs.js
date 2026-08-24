@@ -9,6 +9,7 @@ import {
   SAFE_BOTTOM,
   CONTENT_W,
   wrapText,
+  fitTitleLines,
   drawCenteredText,
   extractCardContent,
   difficultyLabel,
@@ -41,12 +42,17 @@ export function drawChefs(ctx, recipe, userOptions = {}) {
 
   // Title
   ctx.fillStyle = WHITE;
-  ctx.font = '300 110px "Playfair Display", Georgia, serif';
-  const titleLines = wrapText(ctx, c.name, CONTENT_W, 2);
+  const { lines: titleLines, lineHeight: titleLH } = fitTitleLines(ctx, c.name, {
+    maxWidth: CONTENT_W,
+    baseSize: 110,
+    minSize: 58,
+    lineHeightRatio: 120 / 110,
+    fontFor: (s) => `300 ${s}px "Playfair Display", Georgia, serif`,
+  });
   let titleY = CARD_H * 0.46;
   for (const line of titleLines) {
     drawCenteredText(ctx, line, CARD_W / 2, titleY);
-    titleY += 120;
+    titleY += titleLH;
   }
 
   let cursorY = titleY + 8;

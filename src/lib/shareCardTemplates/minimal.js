@@ -9,6 +9,7 @@ import {
   CONTENT_LEFT,
   CONTENT_W,
   wrapText,
+  fitTitleLines,
   drawCenteredText,
   drawHeroEmoji,
   extractCardContent,
@@ -49,12 +50,17 @@ export function drawMinimal(ctx, recipe, userOptions = {}) {
 
   // Title — Inter heavy, centered, tight
   ctx.fillStyle = TEXT_PRIMARY;
-  ctx.font = '700 88px "Inter", system-ui, sans-serif';
-  const titleLines = wrapText(ctx, c.name, CONTENT_W, 2);
+  const { lines: titleLines, lineHeight: titleLH } = fitTitleLines(ctx, c.name, {
+    maxWidth: CONTENT_W,
+    baseSize: 88,
+    minSize: 48,
+    lineHeightRatio: 98 / 88,
+    fontFor: (s) => `700 ${s}px "Inter", system-ui, sans-serif`,
+  });
   let titleY = CARD_H * 0.51;
   for (const line of titleLines) {
     drawCenteredText(ctx, line, CARD_W / 2, titleY);
-    titleY += 98;
+    titleY += titleLH;
   }
 
   // Tagline

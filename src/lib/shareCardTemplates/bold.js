@@ -9,6 +9,7 @@ import {
   CONTENT_LEFT,
   CONTENT_W,
   wrapText,
+  fitTitleLines,
   drawHeroEmoji,
   drawPillRow,
   extractCardContent,
@@ -52,12 +53,21 @@ export function drawBold(ctx, recipe, userOptions = {}) {
 
   // Title — huge, left-aligned, heavy
   ctx.fillStyle = TEXT_PRIMARY;
-  ctx.font = '900 112px "Space Grotesk", system-ui, sans-serif';
-  const titleLines = wrapText(ctx, c.name.toUpperCase(), CONTENT_W, 2);
+  const { lines: titleLines, lineHeight: titleLH } = fitTitleLines(
+    ctx,
+    c.name.toUpperCase(),
+    {
+      maxWidth: CONTENT_W,
+      baseSize: 112,
+      minSize: 60,
+      lineHeightRatio: 124 / 112,
+      fontFor: (s) => `900 ${s}px "Space Grotesk", system-ui, sans-serif`,
+    },
+  );
   let titleY = CARD_H * 0.55;
   for (const line of titleLines) {
     ctx.fillText(line, CONTENT_LEFT, titleY);
-    titleY += 124;
+    titleY += titleLH;
   }
 
   // Tagline

@@ -9,6 +9,7 @@ import {
   SAFE_BOTTOM,
   CONTENT_W,
   wrapText,
+  fitTitleLines,
   drawCenteredText,
   drawPillRow,
   extractCardContent,
@@ -60,12 +61,17 @@ export function drawSunset(ctx, recipe, userOptions = {}) {
   ctx.shadowBlur = 12;
   ctx.shadowOffsetY = 4;
   ctx.fillStyle = WHITE;
-  ctx.font = '900 100px "Inter", system-ui, sans-serif';
-  const titleLines = wrapText(ctx, c.name, CONTENT_W, 2);
+  const { lines: titleLines, lineHeight: titleLH } = fitTitleLines(ctx, c.name, {
+    maxWidth: CONTENT_W,
+    baseSize: 100,
+    minSize: 54,
+    lineHeightRatio: 110 / 100,
+    fontFor: (s) => `900 ${s}px "Inter", system-ui, sans-serif`,
+  });
   let titleY = CARD_H * 0.50;
   for (const line of titleLines) {
     drawCenteredText(ctx, line, CARD_W / 2, titleY);
-    titleY += 110;
+    titleY += titleLH;
   }
   ctx.restore();
 
