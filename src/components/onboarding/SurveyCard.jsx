@@ -28,8 +28,12 @@ export default function SurveyCard({
     direction === "back" ? "survey-slide-back" : "survey-slide-forward";
 
   return (
-    <div className={`flex flex-col flex-1 ${animClass}`}>
-      <div className="flex items-center justify-between min-h-[24px]">
+    // Full-height column: header pinned top, options in the middle (internally
+    // scrollable if they overflow), Next button pinned to the bottom — always
+    // visible without scrolling the page. `min-h-0` lets the middle shrink so
+    // the button never gets pushed below the fold.
+    <div className={`flex flex-col flex-1 min-h-0 ${animClass}`}>
+      <div className="shrink-0 flex items-center justify-between min-h-[24px]">
         {hideProgress ? (
           <span />
         ) : (
@@ -48,9 +52,13 @@ export default function SurveyCard({
         )}
       </div>
 
-      <div className="flex-1 mt-6 flex flex-col">{children}</div>
+      {/* Middle: options scroll here if too tall. The -mx-2/px-2 gutter gives
+          the cards' hard offset shadows room so the scroll box can't clip them. */}
+      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain mt-6 -mx-2 px-2 flex flex-col">
+        {children}
+      </div>
 
-      <div className="mt-6 flex flex-col items-end gap-1.5">
+      <div className="shrink-0 mt-6 pb-5 flex flex-col items-end gap-1.5">
         <div className="w-full flex items-center gap-3">
           {hideBack ? (
             <span />
