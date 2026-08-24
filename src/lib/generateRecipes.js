@@ -28,6 +28,14 @@ The user gives you a list of ingredients. Generate exactly 5 distinct, original 
 PANTRY ASSUMPTION
 You may always assume the user has: salt, pepper, cooking oil, water. Don't list these as missing or required.
 
+CRITICAL RULE: You may ONLY use ingredients from the list the user provided. Do not add ANY extra ingredients that the user did not mention. No exceptions.
+- If a recipe requires an ingredient the user didn't provide, pick a different recipe that works with what they have.
+- Basic pantry staples like salt, pepper, and oil are the ONLY exceptions allowed — everything else must come from the user's ingredient list.
+- Do not suggest recipes that require buying additional ingredients.
+- Every ingredient listed in the recipe must be from the user's provided list (except salt, pepper, oil).
+- If you cannot make 5 recipes purely from the user's ingredients, make fewer recipes — do not invent ingredients to fill the list.
+- Before finalizing each recipe, check every single ingredient against the user's list and remove anything that wasn't provided.
+
 REALISM (HARD RULES)
 - Every recipe must be something real cooks actually prepare — not invented fusion or strange combinations.
 - Use authentic flavor pairings. Examples that work: basil + tomato + mozzarella; ginger + garlic + soy; lemon + olive oil + parsley; cumin + lime + cilantro. Examples that DO NOT work: basil + tuna + chocolate; soy sauce + cinnamon roll; kimchi + maple syrup as a main pairing. If a pairing wouldn't appear in a respected cookbook or restaurant, don't use it.
@@ -62,10 +70,10 @@ QUALITY BAR
 - Each recipe must include at least one technique or detail that elevates the dish: a finishing herb or acid (a squeeze of lemon, a scatter of basil), a flavor builder (deglaze the pan, bloom the spices, toast the nuts), or a textural contrast (crispy topping on a creamy base, crunch on something soft).
 - Names must be evocative and specific. "Lemony Garlic Shrimp Pasta with Charred Tomatoes" beats "Shrimp Pasta". "Crispy Sage-Brown Butter Gnocchi" beats "Pan-Fried Gnocchi". Name what makes it craveable, not just the genre.
 - Taglines must hook the reader on what's special — the technique, the flavor moment, the why-you'd-want-this — not just restate the ingredients. ≤ 80 characters, ideally under 60.
-- Each recipe must lean heavily on the user's provided ingredients. You may add at most 1–2 minor extras only if essential, and only ones most home cooks would have.
+- Each recipe must use ONLY the user's provided ingredients (plus salt, pepper, and cooking oil). Do not add any extras — see the CRITICAL RULE above.
 - Set "timerMinutes" to a number for steps where the cook is waiting (boiling, baking, simmering, resting). Use null for active steps.
 - Use lowercase ingredient names. Be precise with amounts and units.
-- Return EXACTLY 5 recipes — no more, no fewer.
+- Return 5 recipes when possible — but never invent ingredients to reach 5. If only fewer recipes are possible using ONLY the user's ingredients (plus salt, pepper, oil), return fewer. The CRITICAL RULE always wins over the count.
 - Each recipe must be ORIGINAL — your own version, not a verbatim copy of a published recipe.
 
 EMOJI SELECTION
@@ -151,7 +159,7 @@ NUTRITION
 For each recipe, estimate the nutrition per serving based on the ingredients and quantities. Be realistic — use standard nutrition databases as reference. Include: calories (kcal), protein (g), carbs (g), fat (g), fiber (g), sugar (g), sodium (mg), and serving size description. These are estimates, not exact values.
 
 OUTPUT FORMAT
-Stream the 5 recipes as raw JSON objects, one after another. NO array brackets, NO commas between objects, NO prose, NO markdown, NO code fences. Your response must contain exactly 5 top-level JSON objects, concatenated. Whitespace between objects is fine. The very first character of your response must be "{". Each object matches this schema:
+Stream the recipes as raw JSON objects, one after another. NO array brackets, NO commas between objects, NO prose, NO markdown, NO code fences. Your response must contain up to 5 top-level JSON objects (fewer if the CRITICAL RULE requires it), concatenated. Whitespace between objects is fine. The very first character of your response must be "{". Each object matches this schema:
 
 {
   "id": "kebab-case-slug",
@@ -587,7 +595,11 @@ function buildSimilarUserMessage(referenceRecipe, ingredients, preferences) {
 }
 
 function buildUserMessage(ingredients, preferences) {
-  const lines = [`Ingredients I have: ${ingredients.join(", ")}.`];
+  const lines = [
+    `The user has ONLY these ingredients: ${ingredients.join(", ")}.`,
+    "You must work EXCLUSIVELY with these ingredients.",
+    "Do not add anything not on this list except salt, pepper, and cooking oil.",
+  ];
   if (preferences) {
     if (preferences.diet) lines.push(`Diet: ${preferences.diet}.`);
     if (Array.isArray(preferences.allergies) && preferences.allergies.length) {
@@ -608,7 +620,7 @@ function buildUserMessage(ingredients, preferences) {
     }
   }
   lines.push(
-    "Generate the 5 recipes per the system rules, streaming them out as you go.",
+    "Generate up to 5 recipes per the system rules (fewer if needed to avoid adding ingredients I don't have), streaming them out as you go.",
   );
   return lines.join("\n");
 }
