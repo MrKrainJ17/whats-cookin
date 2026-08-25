@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { buildUserProfile } from "./profileBuilder.js";
 import { getBlocklist, isBlocked } from "./blocklist.js";
+import { validateRecipe } from "./recipeValidator.js";
 import {
   getPreferences,
   getAvoidList,
@@ -37,6 +38,50 @@ CRITICAL RULE: You may ONLY use ingredients from the list the user provided. Do 
 - Every ingredient listed in the recipe must be from the user's provided list (except salt, pepper, oil).
 - If you cannot make 5 recipes purely from the user's ingredients, make fewer recipes — do not invent ingredients to fill the list.
 - Before finalizing each recipe, check every single ingredient against the user's list and remove anything that wasn't provided.
+
+SAFETY AND ACCURACY REQUIREMENTS — these are non-negotiable:
+
+Cooking temperatures must be accurate and safe:
+- Chicken must always reach internal temperature of 165°F (74°C) — never suggest undercooked chicken.
+- Ground beef must reach 160°F (71°C).
+- Pork must reach 145°F (63°C).
+- Fish must reach 145°F (63°C).
+- Eggs must be fully cooked unless the recipe explicitly calls for raw eggs (like Caesar dressing) and even then note the risk.
+- Never suggest oven temperatures above 500°F for home cooking — most home ovens max at 500°F.
+- Never suggest broiling times that would burn food — broiling is high heat and 2-3 minutes is usually enough.
+- Always specify whether temperatures are Fahrenheit or Celsius.
+
+Cooking times must be realistic and safe:
+- Chicken breast at 375°F takes 25-30 minutes — never say 10 minutes.
+- A whole chicken takes 1.5-2 hours — never say 30 minutes.
+- Pork chops at 400°F take 20-25 minutes.
+- Never suggest cooking times so short that food would be dangerously undercooked.
+- If a dish normally takes a long time, be honest about it — don't shorten times to make the recipe seem faster.
+
+Dangerous combinations to never suggest:
+- Never suggest putting a cold glass dish into a very hot oven (thermal shock risk).
+- Never suggest cooking with metal utensils in non-stick pans (damages coating).
+- Never suggest adding water to a hot pan of oil (splatter/fire risk).
+- Never suggest deep frying in a regular pot without mentioning oil level safety.
+- Never suggest cooking alcohol in a closed container.
+- Never suggest reheating rice multiple times (food poisoning risk).
+- Never suggest leaving food at room temperature for more than 2 hours.
+- Never suggest rare or medium-rare chicken or pork — only beef steaks can be served below well-done.
+
+Oil and heat safety:
+- Always specify the correct oil for the cooking method — olive oil burns at high heat, use neutral oils for high heat cooking.
+- Never suggest heating an empty pan to extremely high heat for extended periods.
+- Always mention when oil is hot enough before adding food (shimmering, not smoking).
+
+Allergen awareness:
+- Always respect the user's stated allergies from their profile — never include allergens even as optional ingredients.
+- If a recipe contains common allergens (nuts, dairy, gluten, shellfish) always note them clearly.
+
+General accuracy:
+- All measurements must be realistic — 1 tablespoon of salt is too much for most dishes, 1 teaspoon is more appropriate.
+- Baking recipes must have accurate ratios — baking is chemistry and wrong ratios ruin dishes.
+- Never suggest substitutions that fundamentally change the dish chemistry (like replacing all butter with water in baking).
+- If a technique is advanced or risky (deep frying, flambéing, pressure cooking) mention basic safety precautions in the steps.
 
 REALISM (HARD RULES)
 - Every recipe must be something real cooks actually prepare — not invented fusion or strange combinations.
@@ -381,16 +426,34 @@ async function streamRecipes(ingredients, preferences, emit, opts = {}) {
   const userPrefs = getPreferences();
   const { similarTo = null } = opts;
   const recipes = [];
-  const tracker = createObjectStreamTracker((obj) => {
-    const r = normalizeRecipe(obj, recipes.length);
-    if (!r) return;
+  let safetyDropped = 0;
+
+  // Accept a normalized recipe unless it's blocklisted or trips a food-safety
+  // red flag. Returns true if the recipe was emitted, false if dropped.
+  const acceptRecipe = (r) => {
+    if (!r) return false;
     // Drop any model output whose name matches the user's blocklist.
     if (isBlocked(r.name)) {
       console.info("[generateRecipes] dropping blocked recipe:", r.name);
-      return;
+      return false;
+    }
+    // Food-safety validation — never show an unsafe recipe.
+    const { safe, warnings } = validateRecipe(r);
+    if (!safe) {
+      safetyDropped += 1;
+      console.warn(
+        `[recipeValidator] dropping unsafe recipe "${r.name}":`,
+        warnings.map((w) => w.warning).join("; "),
+      );
+      return false;
     }
     recipes.push(r);
     emit(r);
+    return true;
+  };
+
+  const tracker = createObjectStreamTracker((obj) => {
+    acceptRecipe(normalizeRecipe(obj, recipes.length));
   });
 
   // System prompt is split into a static cacheable prefix and a dynamic
@@ -461,15 +524,55 @@ async function streamRecipes(ingredients, preferences, emit, opts = {}) {
   }
 
   // Fallback: if streaming yielded fewer than expected, try parsing the
-  // full text for any objects the streaming tracker missed.
+  // full text for any objects the streaming tracker missed. Routed through
+  // acceptRecipe so these are safety-validated too; deduped by name.
   if (recipes.length < 5 && finalText) {
-    const all = extractAllObjects(finalText);
-    for (let i = recipes.length; i < all.length; i++) {
-      const r = normalizeRecipe(all[i], recipes.length);
-      if (r) {
-        recipes.push(r);
-        emit(r);
+    const seen = new Set(recipes.map((r) => r.name.toLowerCase()));
+    for (const obj of extractAllObjects(finalText)) {
+      if (recipes.length >= 5) break;
+      const r = normalizeRecipe(obj, recipes.length);
+      if (r && !seen.has(r.name.toLowerCase())) {
+        seen.add(r.name.toLowerCase());
+        acceptRecipe(r);
       }
+    }
+  }
+
+  // Regeneration: if recipes were dropped for SAFETY, request safe
+  // replacements so the user still gets a full set rather than seeing the
+  // unsafe ones. One bounded attempt — replacements are validated too, and any
+  // still-unsafe ones are simply dropped (no infinite loop).
+  if (safetyDropped > 0 && recipes.length < 5) {
+    try {
+      const need = 5 - recipes.length;
+      const existing = recipes.map((r) => r.name).join("; ");
+      const retryMessage =
+        userMessage +
+        `\n\nSAFETY REGENERATION: some earlier recipes were rejected for food-safety reasons ` +
+        `(unsafe temperatures/times or undercooked meat). Generate ${need} REPLACEMENT recipe(s) that ` +
+        `strictly follow the SAFETY AND ACCURACY REQUIREMENTS above. Do not repeat these already-provided ` +
+        `recipes: ${existing || "none"}. Output ONLY the replacement recipe object(s) in the same JSON format.`;
+      const retry = await client.messages.create({
+        model: MODEL,
+        max_tokens: 2500,
+        system: systemBlocks,
+        messages: [{ role: "user", content: retryMessage }],
+      });
+      const retryText = retry.content
+        .filter((b) => b.type === "text")
+        .map((b) => b.text)
+        .join("");
+      const seen = new Set(recipes.map((r) => r.name.toLowerCase()));
+      for (const obj of extractAllObjects(retryText)) {
+        if (recipes.length >= 5) break;
+        const r = normalizeRecipe(obj, recipes.length);
+        if (r && !seen.has(r.name.toLowerCase())) {
+          seen.add(r.name.toLowerCase());
+          acceptRecipe(r);
+        }
+      }
+    } catch (err) {
+      console.warn("[generateRecipes] safety regeneration failed:", err);
     }
   }
 

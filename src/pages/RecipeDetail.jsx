@@ -340,6 +340,10 @@ export default function RecipeDetail() {
             <h2 className="font-serif text-[44px] sm:text-5xl font-extrabold text-ink leading-[0.95] tracking-tight mt-4 px-2">
               {recipe.name}
             </h2>
+            <p className="font-script text-sm text-mocha/70 mt-2 px-6 leading-snug">
+              always verify cooking temperatures with a meat thermometer for food
+              safety 🌡️
+            </p>
             {recipe.tagline && (
               <p className="font-script italic text-xl text-terracotta mt-3 px-6 leading-snug">
                 {recipe.tagline}
