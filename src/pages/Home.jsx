@@ -439,16 +439,16 @@ function GearIcon({ className }) {
 
 function SurveyNudge({ onAccept, onDismiss }) {
   return (
-    <div className="mt-6 brut-card p-4 flex items-start gap-3">
-      <span aria-hidden="true" className="text-lg leading-none mt-0.5">
+    <div className="mt-6 brut-card p-4 flex flex-col items-center text-center gap-3">
+      <span aria-hidden="true" className="text-lg leading-none">
         👋
       </span>
-      <div className="flex-1">
+      <div>
         <p className="font-body text-sm text-ink leading-snug">
           Hey — taking 60 seconds to set your preferences will make our recipes
           way better. Wanna do it now?
         </p>
-        <div className="mt-3 flex items-center gap-3">
+        <div className="mt-3 flex items-center justify-center gap-3">
           <button
             type="button"
             onClick={onAccept}
