@@ -14,7 +14,8 @@ import Welcome from "./pages/Welcome.jsx";
 import SignUp from "./pages/SignUp.jsx";
 import LogIn from "./pages/LogIn.jsx";
 import AuthCallback from "./pages/AuthCallback.jsx";
-import PasswordReset from "./pages/PasswordReset.jsx";
+import ResetPassword from "./pages/ResetPassword.jsx";
+import NewPassword from "./pages/NewPassword.jsx";
 import Profile from "./pages/Profile.jsx";
 import EditDiet from "./pages/profile/EditDiet.jsx";
 import EditAllergies from "./pages/profile/EditAllergies.jsx";
@@ -66,7 +67,8 @@ export default function App() {
           <Route path="/signup" element={<SignUp />} />
           <Route path="/login" element={<LogIn />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="/reset-password" element={<PasswordReset />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/auth/reset-callback" element={<NewPassword />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/profile/diet" element={<EditDiet />} />
           <Route path="/profile/allergies" element={<EditAllergies />} />
@@ -94,6 +96,7 @@ const NAME_EXEMPT_PATHS = new Set([
   "/login",
   "/auth/callback",
   "/reset-password",
+  "/auth/reset-callback",
 ]);
 
 function NameGate({ children }) {

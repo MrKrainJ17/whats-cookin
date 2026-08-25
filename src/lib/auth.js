@@ -53,7 +53,7 @@ export async function signOut() {
 export async function resetPassword(email) {
   if (!supabase) return unconfigured();
   return supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: redirectTo("/reset-password"),
+    redirectTo: redirectTo("/auth/reset-callback"),
   });
 }
 

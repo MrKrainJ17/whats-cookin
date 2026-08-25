@@ -2,14 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthShell from "../components/auth/AuthShell.jsx";
 import AuthInput from "../components/auth/AuthInput.jsx";
-import { resetPassword, signInWithPassword } from "../lib/auth.js";
+import { signInWithPassword } from "../lib/auth.js";
 
 export default function LogIn() {
   const navigate = useNavigate();
   const emailRef = useRef(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [state, setState] = useState("form"); // form | submitting | reset-sent
+  const [state, setState] = useState("form"); // form | submitting
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -32,43 +32,6 @@ export default function LogIn() {
     }
     navigate("/", { replace: true });
   };
-
-  const sendReset = async () => {
-    if (!email) {
-      setError("Enter your email above first, then tap Forgot password.");
-      return;
-    }
-    setError(null);
-    const { error: err } = await resetPassword(email.trim());
-    if (err) {
-      setError(err.message);
-      return;
-    }
-    setState("reset-sent");
-  };
-
-  if (state === "reset-sent") {
-    return (
-      <AuthShell back="/welcome">
-        <div className="flex-1 flex flex-col items-center justify-center text-center gap-5 px-4 -mt-6">
-          <span className="text-5xl" aria-hidden="true">📬</span>
-          <h1 className="font-serif font-extrabold text-ink leading-[0.95] tracking-tight text-[40px]">
-            Reset link sent
-          </h1>
-          <p className="font-script text-lg text-mocha leading-snug max-w-xs">
-            check your inbox for instructions to set a new password
-          </p>
-          <button
-            type="button"
-            onClick={() => setState("form")}
-            className="brut-button justify-center mt-4"
-          >
-            <span className="font-serif text-lg font-bold">Back to log in</span>
-          </button>
-        </div>
-      </AuthShell>
-    );
-  }
 
   return (
     <AuthShell back="/welcome" backLabel="Back">
@@ -106,7 +69,7 @@ export default function LogIn() {
         <div className="flex justify-end -mt-2">
           <button
             type="button"
-            onClick={sendReset}
+            onClick={() => navigate("/reset-password")}
             className="font-script text-base text-mocha hover:text-ink underline underline-offset-2"
           >
             Forgot password?
