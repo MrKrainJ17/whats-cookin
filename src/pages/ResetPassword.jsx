@@ -30,13 +30,20 @@ export default function ResetPassword() {
     }
     setError(null);
     setState("submitting");
-    const { error: err } = await resetPassword(email.trim());
-    if (err) {
-      setError(err.message);
+    try {
+      const { error: err } = await resetPassword(email.trim());
+      if (err) {
+        setError(err.message);
+        setState("form");
+        return;
+      }
+      setState("sent");
+    } catch {
+      // Network failure (Supabase unreachable / misconfigured) rejects the
+      // promise — surface a friendly message instead of a raw "load failed".
+      setError("Couldn't reach the server. Check your connection and try again.");
       setState("form");
-      return;
     }
-    setState("sent");
   };
 
   if (state === "sent") {

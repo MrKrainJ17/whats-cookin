@@ -56,13 +56,18 @@ export default function NewPassword() {
     }
     setError(null);
     setState("submitting");
-    const { error: err } = await updatePassword(password);
-    if (err) {
-      setError(err.message);
+    try {
+      const { error: err } = await updatePassword(password);
+      if (err) {
+        setError(err.message);
+        setState("form");
+        return;
+      }
+      setState("done");
+    } catch {
+      setError("Couldn't reach the server. Check your connection and try again.");
       setState("form");
-      return;
     }
-    setState("done");
   };
 
   // No recovery session (opened directly or the link expired) — bounce to reset.
