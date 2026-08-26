@@ -30,6 +30,11 @@ export default function ResetPassword() {
     }
     setError(null);
     setState("submitting");
+    // resetPassword() wraps supabase.auth.resetPasswordForEmail(email, {
+    //   redirectTo: `${window.location.origin}/auth/reset-callback`
+    // }) — see src/lib/auth.js. The try/catch turns a rejected fetch (Supabase
+    // unreachable / misconfigured) into a friendly message instead of a raw
+    // "load failed" crash.
     try {
       const { error: err } = await resetPassword(email.trim());
       if (err) {
@@ -39,9 +44,9 @@ export default function ResetPassword() {
       }
       setState("sent");
     } catch {
-      // Network failure (Supabase unreachable / misconfigured) rejects the
-      // promise — surface a friendly message instead of a raw "load failed".
-      setError("Couldn't reach the server. Check your connection and try again.");
+      setError(
+        "Couldn't send reset email — check your connection and try again.",
+      );
       setState("form");
     }
   };
