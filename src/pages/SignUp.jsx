@@ -51,13 +51,21 @@ export default function SignUp() {
     }
     setError(null);
     setState("submitting");
-    const { data, error: err } = await signUp(
-      email.trim(),
-      password,
-      trimmedName,
-    );
+    let data, err;
+    try {
+      ({ data, error: err } = await signUp(email.trim(), password, trimmedName));
+    } catch (thrown) {
+      console.error("Signup threw (network/other):", thrown);
+      setError("Couldn't sign up — check your connection and try again.");
+      setState("form");
+      return;
+    }
+    // Detailed logging so the exact Supabase response is visible in the
+    // browser console — lets us tell if ALL auth is broken or just reset.
+    console.log("Signup response:", { data, error: err });
     if (err) {
-      setError(err.message);
+      console.error("Signup error details:", err.message, err.status);
+      setError(`Error: ${err.message}`);
       setState("form");
       return;
     }

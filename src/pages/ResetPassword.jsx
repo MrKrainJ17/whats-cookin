@@ -36,14 +36,19 @@ export default function ResetPassword() {
     // unreachable / misconfigured) into a friendly message instead of a raw
     // "load failed" crash.
     try {
-      const { error: err } = await resetPassword(email.trim());
+      const { data, error: err } = await resetPassword(email.trim());
+      // Detailed logging so the exact Supabase response is visible in the
+      // browser console (Cmd+Option+I → Console).
+      console.log("Reset response:", { data, error: err });
       if (err) {
-        setError(err.message);
+        console.error("Reset error details:", err.message, err.status);
+        setError(`Error: ${err.message}`);
         setState("form");
         return;
       }
       setState("sent");
-    } catch {
+    } catch (err) {
+      console.error("Reset threw (network/other):", err);
       setError(
         "Couldn't send reset email — check your connection and try again.",
       );
